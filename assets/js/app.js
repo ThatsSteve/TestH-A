@@ -83,16 +83,16 @@
     $$('[data-r="words"]', scope).forEach(el => {
       const ins = $$('.wm__in', el);
       gsap.set(ins, { yPercent: 110 });
-      once(el, () => gsap.to(ins, { yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.03 }));
+      once(el, () => gsap.to(ins, { yPercent: 0, duration: 0.8, ease: 'power3.out', stagger: 0.02 }));
     });
     $$('[data-r="up"]', scope).forEach(el => {
-      gsap.set(el, { opacity: 0, y: 28 });
-      once(el, () => gsap.to(el, { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }));
+      gsap.set(el, { opacity: 0, y: 16 });
+      once(el, () => gsap.to(el, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }));
     });
     // Images: a soft fade with a slight rise, no zoom (never upscale the photos)
     $$('[data-r="img"]', scope).forEach(el => {
-      gsap.set(el, { opacity: 0, y: 32 });
-      once(el, () => gsap.to(el, { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' }), 'top 94%');
+      gsap.set(el, { opacity: 0, y: 16 });
+      once(el, () => gsap.to(el, { opacity: 1, y: 0, duration: 0.65, ease: 'power2.out' }), 'top 94%');
     });
   }
 
@@ -228,18 +228,18 @@
       steps.forEach((s, k) => s.classList.toggle('is-active', k === i));
       count.textContent = pad(i + 1);
       titleA.href = openEl.href = V.link(V.U.project(p.slug));
-      if (useGL) gl.goTo(i, 2.4); else imgs.forEach((im, k) => im.classList.toggle('is-on', k === i));
+      if (useGL) gl.goTo(i, 1.3); else imgs.forEach((im, k) => im.classList.toggle('is-on', k === i));
       if (ANIM) {
+        // Sober text change: the title and place fade out and back in as a whole
+        const txt = [titleA, locEl];
         gsap.timeline()
-          .to($$('.ch', titleA), { yPercent: -110, duration: 0.7, ease: 'power3.in', stagger: 0.012 })
-          .to(locEl, { yPercent: -110, duration: 0.45, ease: 'expo.in' }, 0)
+          .to(txt, { opacity: 0, y: -8, duration: 0.25, ease: 'power1.in' })
           .add(() => {
             titleA.innerHTML = V.chars(p.title);
             fitOne(titleA.parentElement);
             locEl.textContent = loc(p);
-            gsap.fromTo($$('.ch', titleA), { yPercent: 110 }, { yPercent: 0, duration: 1.4, ease: 'expo.out', stagger: 0.02, delay: 0.5 });
-            gsap.fromTo(locEl, { yPercent: 110 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', delay: 0.3 });
-          });
+          })
+          .fromTo(txt, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', stagger: 0.06 }, '+=0.1');
       } else { titleA.innerHTML = V.chars(p.title); fitOne(titleA.parentElement); locEl.textContent = loc(p); }
       progress();
     }
@@ -282,21 +282,12 @@
 
     if (!ANIM) { progress(); return; }
 
-    gsap.set($$('.ch', titleA), { yPercent: 110 });
-    gsap.set(locEl, { yPercent: 110 });
-    // Opening: "Featured projects", the frame, then the project title
-    const headWords = $$('.hero__head .wm__in');
-    gsap.set(headWords, { yPercent: 110 });
-    gsap.set(['.hero__count', '.hero__side', '.hero__steps'], { opacity: 0, y: 16 });
-    gsap.set('.hero__stage', { opacity: 0, y: 32 });
+    // Opening, light and quick: heading, image and text fade up together
+    const intro = ['.hero__head', '.hero__stage', '.hero__info', '.hero__steps'];
+    gsap.set(intro, { opacity: 0, y: 14 });
     page.intro = () => gsap.timeline()
-      .to(headWords, { yPercent: 0, duration: 1.2, ease: 'expo.out', stagger: 0.06 }, 0)
-      .to('.hero__count', { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 0.3)
-      .to('.hero__stage', { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' }, 0.3)
-      .to($$('.ch', titleA), { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.022 }, 0.8)
-      .to(locEl, { yPercent: 0, duration: 1, ease: 'expo.out' }, 1.1)
-      .to(['.hero__side', '.hero__steps'], { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.08 }, 1.1)
-      .add(progress, 1.3);
+      .to(intro, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.08 }, 0)
+      .add(progress, 0.6);
 
     // Figures count up once
     $$('.fig__n[data-count]').forEach(el => {
@@ -714,7 +705,13 @@
       const url = internal(a);
       if (!url) return;
       e.preventDefault();
-      if (url.pathname === location.pathname) { scrollToEl(document.body); return; }
+      // Any internal link (the logo included) first closes the menu if it is open
+      const menuWasOpen = document.body.classList.contains('menu-open');
+      page.closeMenu && page.closeMenu(true);
+      if (url.pathname === location.pathname) {
+        if (menuWasOpen) scrollTop(); else if (lenis) lenis.scrollTo(0, { duration: 1.2 }); else window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+        return;
+      }
       go(url.pathname, true);
     });
     addEventListener('popstate', () => {

@@ -120,6 +120,8 @@ ul, ol { list-style: none; }
 .header__nav { flex: 1; display: flex; justify-content: center; }
 .header__nav > ul { display: flex; gap: clamp(18px, 3vw, 56px); }
 .area-nav { position: relative; }
+body.menu-open .header__nav { visibility: hidden; opacity: 0; }
+.header__nav { transition: opacity .3s ease; }
 .area-nav__a { position: relative; display: inline-block; text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; font-weight: 400; padding: 12px 0; white-space: nowrap; }
 .area-nav__a::after { content: ''; position: absolute; left: 0; right: 0; bottom: 6px; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform .45s var(--ease); }
 .area-nav__a:hover::after, .area-nav:focus-within .area-nav__a::after, .area-nav__a.is-active::after { transform: scaleX(1); transform-origin: left; }
@@ -168,9 +170,11 @@ body.menu-open .header__burger-i span:nth-child(2) { transform: rotate(-45deg); 
    Home — hero (framed, never upscaled)
    ========================================================================== */
 /* Home — studio description, set apart by a hairline and a navy rule */
-.intro { padding-top: clamp(80px, 10vw, 170px); }
-.intro__inner { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; border-top: 1px solid var(--line); padding-top: clamp(40px, 5vw, 80px); }
-.intro__text { grid-column: 1 / span 9; font-size: clamp(1.75rem, 3.7vw, 4.1rem); line-height: 1.1; letter-spacing: -.035em; color: var(--navy); font-weight: 300; padding-left: clamp(18px, 2vw, 34px); border-left: 2px solid var(--navy); }
+.intro { padding-top: clamp(48px, 6vw, 100px); }
+.intro__inner { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; }
+/* a short navy accent instead of a full grey line */
+.intro__inner::before { content: ''; grid-column: 1 / -1; width: 48px; height: 2px; background: var(--navy); margin-bottom: clamp(24px, 3vw, 40px); }
+.intro__text { grid-column: 1 / span 9; font-size: clamp(1.75rem, 3.7vw, 4.1rem); line-height: 1.1; letter-spacing: -.035em; color: var(--navy); font-weight: 300; }
 .intro__row { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: 22px; margin-top: clamp(28px, 4vw, 60px); }
 .intro__p { grid-column: 7 / span 5; }
 .intro__cta { grid-column: 7 / span 5; }
