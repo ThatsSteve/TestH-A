@@ -88,14 +88,22 @@
     <header class="header">
       <div class="header__bar wrap">
         <a class="header__logo" href="/" aria-label="H&amp;A Associati, home">${logoSVG()}</a>
-        <nav class="header__nav" aria-label="Main">
-          <a href="${U.projects}" data-nav="projects">Projects</a>
-          <a href="${U.firm}" data-nav="firm">The Firm</a>
-          <a href="${U.people}" data-nav="people">People</a>
-          <a href="#contacts" data-nav="contacts">Contacts</a>
+        <nav class="header__nav" aria-label="Areas">
+          <ul>
+            ${tops.map(a => {
+              const kids = childrenOf(a.id).filter(c => countIn(c.slug));
+              return `<li class="area-nav">
+              <a class="area-nav__a" href="${U.area(a)}" data-top="${a.slug}">${esc(a.name)}</a>
+              ${kids.length ? `<div class="area-nav__drop"><ul>${kids.map(c => `<li><a href="${U.area(c)}" data-top="${a.slug}" data-area="${c.slug}">${esc(c.name)}<sup>${countIn(c.slug)}</sup></a></li>`).join('')}</ul></div>` : ''}
+            </li>`;
+            }).join('')}
+          </ul>
         </nav>
-        <button class="header__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
+        <button class="header__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span class="header__burger-l">Menu</span><span class="header__burger-i"><span></span><span></span></span></button>
       </div>
+      <nav class="header__strip" aria-label="Areas">
+        ${tops.map(a => `<a href="${U.area(a)}" data-top="${a.slug}">${esc(a.name)}</a>`).join('')}
+      </nav>
     </header>
     <div class="menu" id="menu" hidden>
       <div class="menu__inner wrap">
@@ -229,12 +237,23 @@
       </div>
     </section>
 
-    <section class="statement wrap">
-      <p class="statement__text">${esc(D.site.description).split(' ').map(w => `<span class="w">${w}</span>`).join(' ')}</p>
-      <div class="statement__cols">
-        ${intro.slice(1, 3).map(t => `<p data-r="up">${esc(t)}</p>`).join('')}
-        <div class="statement__cta" data-r="up">${cta(U.firm, 'The Firm')}</div>
-      </div>
+    <section class="areas wrap" aria-labelledby="h-areas">
+      <h2 class="sr-only" id="h-areas">Areas</h2>
+      <ul class="areas__grid">
+        ${tops.map((a, i) => {
+          const p = P.find(q => inArea(q, a.slug));
+          return `<li data-r="up">
+          <a class="area-card" href="${U.area(a)}">
+            <span class="area-card__img">${p ? pic(p.cover, '(max-width: 560px) 96px, (max-width: 1023px) 46vw, 25vw', a.name) : ''}</span>
+            <span class="area-card__body">
+              <span class="area-card__n">${pad(i + 1)}</span>
+              <span class="area-card__t">${esc(a.name)}</span>
+              <span class="area-card__c">${countIn(a.slug)} projects</span>
+            </span>
+          </a>
+        </li>`;
+        }).join('')}
+      </ul>
     </section>
 
     <section class="sec" aria-labelledby="h-works">
@@ -242,7 +261,29 @@
         <h2 class="sec__title" id="h-works" data-r="words">${words('Projects')}</h2>
         ${cta(U.projects, `All projects (${P.length})`)}
       </div>
-      ${carousel(works, 'Selected projects')}
+      <ol class="ed wrap">
+        ${works.map((p, i) => `
+        <li class="ed__item${i % 2 ? ' ed__item--r' : ''}">
+          <a class="ed__link" href="${U.project(p.slug)}">
+            <span class="ed__img" data-r="img">${pic(p.cover, '(max-width: 860px) 100vw, 58vw', p.title)}</span>
+            <span class="ed__text" data-r="up">
+              <span class="ed__n">${pad(i + 1)}</span>
+              <span class="ed__t">${esc(p.title)}</span>
+              <span class="ed__l">${esc(loc(p))}</span>
+              ${p.facts.Tipology ? `<span class="ed__c">${esc(p.facts.Tipology)}</span>` : ''}
+            </span>
+          </a>
+        </li>`).join('')}
+      </ol>
+      <div class="wrap ed__more">${cta(U.projects, 'More projects')}</div>
+    </section>
+
+    <section class="statement wrap">
+      <p class="statement__text">${esc(D.site.description).split(' ').map(w => `<span class="w">${w}</span>`).join(' ')}</p>
+      <div class="statement__cols">
+        ${intro.slice(1, 3).map(t => `<p data-r="up">${esc(t)}</p>`).join('')}
+        <div class="statement__cta" data-r="up">${cta(U.firm, 'The Firm')}</div>
+      </div>
     </section>
 
     <section class="sec sec--map" aria-labelledby="h-map">

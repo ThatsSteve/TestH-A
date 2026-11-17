@@ -296,6 +296,19 @@
     $$('.disc__img').forEach(el => el.setAttribute('data-r', 'img'));
   }
 
+  /* ------------------------------------------------- header areas */
+  const topOf = a => (a && a.parent ? areaById[a.parent] : a);
+  // Highlight the area(s) of the current page in the header (desktop menu and phone strip)
+  function navActive(tops, sub) {
+    $$('.header [data-top]').forEach(a => {
+      const on = a.dataset.area ? a.dataset.area === sub : tops.includes(a.dataset.top);
+      a.classList.toggle('is-active', on);
+      if (on && (a.dataset.area || sub === a.dataset.top)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    const strip = $('.header__strip'), act = $('.header__strip .is-active');
+    if (strip && act) strip.scrollTo({ left: act.offsetLeft - (strip.clientWidth - act.offsetWidth) / 2, behavior: 'smooth' });
+  }
+
   /* ---------------------------------------------------- titles fit */
   // Words never break; if the longest word is wider than its column, shrink that title to fit
   const FIT = '.hero__title, .proj__title, .phead__title, .pindex__title, .sec__title, .fphil__title, .fsec__title, .psec__title, .proj__h';
@@ -391,6 +404,7 @@
       titleEl.insertAdjacentHTML('afterbegin', V.words(name));
       fitOne(titleEl);
       sel('area').value = active ? active.slug : '';
+      navActive(active ? [topOf(active).slug] : [], active ? active.slug : null);
       const path = V.link(active ? V.U.area(active) : V.U.projects);
       if (location.pathname !== path) history.replaceState({ path }, '', path);
       document.title = active ? `${active.name} | Projects | H&A Associati` : 'Projects | H&A Associati';
@@ -613,12 +627,10 @@
     page.path = location.pathname;
     main.innerHTML = r.html;
     setMeta(r.meta);
-    $$('.header__nav a').forEach(a => {
-      const n = a.dataset.nav;
-      const on = n === r.name || (n === 'projects' && r.name === 'project');
-      a.classList.toggle('is-active', on);
-      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
-    });
+    let tops = [];
+    if (r.name === 'projects' && r.route.area && areaBySlug[r.route.area]) tops = [topOf(areaBySlug[r.route.area]).slug];
+    if (r.name === 'project' && projBySlug[r.route.slug]) tops = projBySlug[r.route.slug].areas.map(id => areaById[id]).filter(a => a && !a.parent).map(a => a.slug);
+    navActive(tops, r.name === 'projects' ? r.route.area : null);
     scrollTop();
     const init = { home: initHome, projects: () => initProjects(r.route), project: () => initProject(r.route), firm: initFirm, people: initPeople }[r.name] || introTitle;
     fitTitles(main);
@@ -632,6 +644,14 @@
     if (busy) { queued = pathname; return; }
     busy = true;
     if (push) history.pushState({ path: pathname }, '', pathname);
+    // Moving between areas inside Projects is a filter change: no curtain
+    if (page.name === 'projects' && V.match(pathname).name === 'projects') {
+      render(pathname);
+      page.intro && page.intro();
+      busy = false;
+      if (queued) { const q = queued; queued = null; go(q, false); }
+      return;
+    }
     const curtain = $('.curtain');
     const glyphs = $$('.lg, .lb, .ls', curtain);
     // Smooth movement: the logo appears as the curtain closes, stays readable for a moment
