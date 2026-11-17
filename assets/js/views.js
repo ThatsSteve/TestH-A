@@ -1,0 +1,561 @@
+/* ==========================================================================
+   H&A Associati — views
+   Pure functions: data in, HTML out. Used by the browser (app.js) and by
+   build.js to pre-render every page as static HTML for search engines.
+   ========================================================================== */
+(function (factory) {
+  if (typeof module !== 'undefined') module.exports = factory;
+  else window.HA_VIEWS = factory(window.HA_DATA, window.HA_LOGO);
+})(function (D, L) {
+  'use strict';
+
+  const SITE_URL = 'https://www.hastudio.it';
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const pad = n => String(n).padStart(2, '0');
+  const lines = arr => arr.flatMap(s => s.split('\n')).map(s => s.trim()).filter(Boolean);
+  const isCaps = t => /^[A-Z\s]+$/.test(t);
+
+  /* ---------------------------------------------------------------- data */
+  const P = D.projects;
+  const AREA_ORDER = ['architecture', 'engineering', 'urban-planning-and-landscape', 'competition'];
+  const areaById = Object.fromEntries(D.areas.map(a => [a.id, a]));
+  const areaBySlug = Object.fromEntries(D.areas.map(a => [a.slug, a]));
+  const tops = AREA_ORDER.map(s => areaBySlug[s]).filter(Boolean);
+  const childrenOf = id => D.areas.filter(a => a.parent === id);
+  const projBySlug = Object.fromEntries(P.map(p => [p.slug, p]));
+  const inArea = (p, slug) => { const a = areaBySlug[slug]; return !!a && p.areas.includes(a.id); };
+  const countIn = slug => P.filter(p => inArea(p, slug)).length;
+  const featured = P.filter(p => p.order <= 3);
+  const loc = p => p.facts.Location || '';
+  const country = p => { const m = loc(p).match(/italy|china|korea/i); return m ? m[0][0].toUpperCase() + m[0].slice(1).toLowerCase() : ''; };
+  const COUNTRIES = ['Italy', 'China', 'Korea'].filter(c => P.some(p => country(p) === c));
+  const FACT_LABELS = { Location: 'Location', Client: 'Client', Tipology: 'Typology', Size: 'Size', Status: 'Status', Credits: 'Credits' };
+
+  /* ---------------------------------------------------------------- urls */
+  const U = {
+    home: '/',
+    projects: '/projects/',
+    project: slug => `/projects/${slug}/`,
+    firm: '/the-firm/',
+    people: '/people/',
+    area: a => (a.parent ? `/area/${areaById[a.parent].slug}/${a.slug}/` : `/area/${a.slug}/`),
+  };
+
+  /* -------------------------------------------------------------- images */
+  // WordPress keeps resized copies next to the original: name-768x512.webp
+  const variantUrl = (im, suf) => (suf ? im.src.replace(/(\.[a-z0-9]+)$/i, suf + '$1') : im.src);
+  const srcset = im => (im.v || []).map(s => `${variantUrl(im, s)} ${parseInt(s.slice(1), 10)}w`).concat(`${im.src} ${im.w}w`).join(', ');
+  // Pick the smallest copy at least `min` px wide (used for thumbnails and map cards)
+  const smallUrl = (im, min) => { const s = (im.v || []).find(x => parseInt(x.slice(1), 10) >= min); return variantUrl(im, s); };
+  function pic(im, sizes, alt, opt = {}) {
+    if (!im) return '';
+    return `<img src="${esc(im.src)}"${im.v && im.v.length ? ` srcset="${esc(srcset(im))}" sizes="${sizes}"` : ''}${im.w ? ` width="${im.w}" height="${im.h}"` : ''} alt="${esc(alt || '')}"${opt.eager ? ' fetchpriority="high"' : ' loading="lazy"'} decoding="async"${opt.cls ? ` class="${opt.cls}"` : ''}>`;
+  }
+  const SZ = {
+    card: '(max-width: 700px) 84vw, (max-width: 1100px) 46vw, 560px',
+    grid: '(max-width: 560px) 92vw, (max-width: 1100px) 46vw, 31vw',
+    cover: '(max-width: 1240px) 100vw, 1200px',
+    half: '(max-width: 860px) 100vw, 50vw',
+    third: '(max-width: 860px) 100vw, 66vw',
+    thumb: '120px',
+    small: '(max-width: 860px) 50vw, 25vw',
+  };
+
+  /* ------------------------------------------------------------- strings */
+  const words = text => esc(text).split(/\s+/).filter(Boolean).map(w => `<span class="wm"><span class="wm__in">${w}</span></span>`).join(' ');
+  const chars = text => esc(text).split(' ').map(w => `<span class="wd">${[...w].map(c => `<span class="ch">${c}</span>`).join('')}</span>`).join(' ');
+  const arrowSVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg>';
+  const cta = (href, label, cls = '') => `<a class="cta ${cls}" href="${href}"><span>${esc(label)}</span>${arrowSVG}</a>`;
+
+  function logoSVG(title) {
+    return `<svg viewBox="0 0 800 800" role="img" aria-label="${esc(title || 'H&A Associati')}"><path fill="#022753" d="${L.sq}"/><g fill="#fff">${L.big.concat(L.small).map(d => `<path d="${d}"/>`).join('')}</g></svg>`;
+  }
+  function markSVG() {
+    return `<svg viewBox="50 320 700 420" aria-hidden="true">
+      <g fill="#fff">${L.big.map(d => `<path class="lg" d="${d}"/>`).join('')}</g>
+      <line class="lb" x1="70" x2="730" y1="648" y2="648" stroke="#fff" stroke-width="1.5"/>
+      <g fill="#fff">${L.small.map(d => `<path class="ls" d="${d}"/>`).join('')}</g>
+    </svg>`;
+  }
+
+  /* -------------------------------------------------------------- chrome */
+  function header() {
+    return `
+    <header class="header">
+      <div class="header__bar wrap">
+        <a class="header__logo" href="/" aria-label="H&amp;A Associati, home">${logoSVG()}</a>
+        <nav class="header__nav" aria-label="Main">
+          <a href="${U.projects}" data-nav="projects">Projects</a>
+          <a href="${U.firm}" data-nav="firm">The Firm</a>
+          <a href="${U.people}" data-nav="people">People</a>
+          <a href="#contacts" data-nav="contacts">Contacts</a>
+        </nav>
+        <button class="header__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
+      </div>
+    </header>
+    <div class="menu" id="menu" hidden>
+      <div class="menu__inner wrap">
+        <nav class="menu__main" aria-label="Menu">
+          ${[[U.projects, 'Projects'], [U.firm, 'The Firm'], [U.people, 'People'], ['#contacts', 'Contacts']].map(([h, t]) => `<span class="ln"><a class="ln__in" href="${h}">${t}</a></span>`).join('')}
+        </nav>
+        <div class="menu__areas">
+          ${tops.map(a => `<div><p class="menu__h"><a href="${U.area(a)}">${esc(a.name)}</a></p>${childrenOf(a.id).filter(c => countIn(c.slug)).map(c => `<a href="${U.area(c)}">${esc(c.name)}</a>`).join('')}</div>`).join('')}
+        </div>
+        <div class="menu__foot">
+          <a href="mailto:${D.site.contacts.mail}">${esc(D.site.contacts.mail)}</a>
+          <a href="${D.site.contacts.telHref}">${esc(D.site.contacts.tel)}</a>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function footer() {
+    const s = D.site;
+    return `
+    <footer class="footer" id="contacts">
+      <div class="wrap footer__top">
+        <div class="footer__call">
+          <a class="footer__mail" href="mailto:${s.contacts.mail}">${esc(s.contacts.mail)}</a>
+          <a class="footer__tel" href="${s.contacts.telHref}">${esc(s.contacts.tel)}</a>
+        </div>
+        <div class="footer__cols">
+          <div><h2 class="footer__h">Contacts</h2>
+            <p>H&amp;A Associati<br>${esc(s.contacts.address)}<br>Tel: <a href="${s.contacts.telHref}">${esc(s.contacts.tel)}</a><br>Mail: <a href="mailto:${s.contacts.mail}">${esc(s.contacts.mail)}</a></p>
+          </div>
+          <div><h2 class="footer__h">Offices</h2>
+            ${s.offices.map(o => `<p class="footer__office"><strong>${esc(o.city)} (${esc(o.country)})</strong>${o.lines.map(esc).join('<br>')}${o.tel ? `<br>Tel: <a href="${o.telHref}">${esc(o.tel)}</a>` : ''}</p>`).join('')}
+          </div>
+          <div><h2 class="footer__h">Social</h2>
+            <ul>${s.social.map(x => `<li><a href="${x.href}" target="_blank" rel="noopener">${esc(x.name)}</a></li>`).join('')}</ul>
+          </div>
+          <div><h2 class="footer__h">Legal</h2>
+            <p>${esc(s.legal.copy)}<br>${esc(s.legal.vat)}</p>
+            <p><a href="${s.legal.privacy}" target="_blank" rel="noopener">Privacy Policy</a><br><a href="${s.legal.cookie}" target="_blank" rel="noopener">Cookie Policy</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="footer__mark" aria-hidden="true"><div class="wrap"><span>H&amp;A Associati</span></div></div>
+      <div class="wrap footer__bottom">
+        <span>${esc(s.legal.copy)} | ${esc(s.legal.vat)}</span>
+        <a class="footer__top" href="#top">Back to the top</a>
+      </div>
+    </footer>`;
+  }
+
+  /* -------------------------------------------------------- shared parts */
+  const card = (p, i, sizes) => `
+    <li class="card">
+      <a class="card__link" href="${U.project(p.slug)}">
+        <span class="card__img">${pic(p.cover, sizes || SZ.card, p.title)}</span>
+        <span class="card__cap">
+          ${i != null ? `<span class="card__n">${pad(i + 1)}</span>` : ''}
+          <span class="card__t">${esc(p.title)}</span>
+          <span class="card__l">${esc(loc(p))}</span>
+        </span>
+      </a>
+    </li>`;
+
+  function carousel(list, label) {
+    return `
+    <div class="car" data-carousel>
+      <ul class="car__track" aria-label="${esc(label)}">${list.map((p, i) => card(p, i)).join('')}</ul>
+      <div class="wrap car__foot">
+        <div class="car__progress" aria-hidden="true"><i></i></div>
+        <div class="car__btns">
+          <button class="car__btn car__prev" type="button" aria-label="Previous">${arrowSVG}</button>
+          <button class="car__btn car__next" type="button" aria-label="Next">${arrowSVG}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Projects map with region tabs and a synced list (map loads lazily in the browser)
+  function mapBlock(list, id) {
+    const by = c => list.filter(p => country(p) === c).length;
+    return `
+    <div class="pmap" data-map="${id}">
+      <div class="pmap__tabs" role="tablist" aria-label="Regions">
+        <button type="button" role="tab" data-region="all" aria-selected="true">All<sup>${list.length}</sup></button>
+        ${COUNTRIES.filter(by).map(c => `<button type="button" role="tab" data-region="${c}" aria-selected="false">${c}<sup>${by(c)}</sup></button>`).join('')}
+      </div>
+      <div class="pmap__grid">
+        <div class="pmap__canvas" aria-label="Map of project locations"><div class="pmap__note">Loading map</div></div>
+        <ol class="pmap__list">
+          ${list.map(p => `<li data-slug="${p.slug}" data-country="${country(p)}"><a href="${U.project(p.slug)}"><span class="pmap__t">${esc(p.title)}</span><span class="pmap__l">${esc(loc(p))}</span></a></li>`).join('')}
+        </ol>
+      </div>
+    </div>`;
+  }
+
+  /* =============================================================== VIEWS */
+
+  function viewHome() {
+    const f = featured;
+    const works = P.slice(0, 10);
+    const sections = D.firm.sections.filter(s => s.images.length);
+    const intro = lines(D.firm.intro[0] || []);
+    const offices = D.site.offices;
+    const tz = { Venice: 'Europe/Rome', Rome: 'Europe/Rome', Shanghai: 'Asia/Shanghai' };
+    const join = arr => arr.join(', ').replace(/, ([^,]*)$/, ' and $1');
+
+    return `
+    <h1 class="sr-only">H&amp;A Associati, architecture and engineering in Venice and Shanghai</h1>
+    <section class="hero wrap" aria-label="Featured projects">
+      <div class="hero__grid">
+        <div class="hero__text">
+          <h2 class="hero__title"><a href="${U.project(f[0].slug)}">${chars(f[0].title)}</a></h2>
+          <p class="hero__loc caps"><span>${esc(loc(f[0]))}</span></p>
+          <a class="hero__open cta" href="${U.project(f[0].slug)}"><span>View project</span>${arrowSVG}</a>
+        </div>
+        <div class="hero__frame">
+          <canvas class="hero__canvas" aria-hidden="true"></canvas>
+          <div class="hero__imgs">${f.map((p, i) => pic(p.cover, SZ.cover, p.title, { eager: i === 0, cls: i === 0 ? 'is-on' : '' })).join('')}</div>
+        </div>
+      </div>
+      <div class="hero__bar">
+        <ol class="hero__steps">
+          ${f.map((p, i) => `<li><button type="button" class="hero__step${i === 0 ? ' is-active' : ''}" aria-label="${esc(p.title)}"><i><b></b></i><span>${pad(i + 1)}</span><em>${esc(p.title)}</em></button></li>`).join('')}
+        </ol>
+        <div class="hero__nav">
+          <span class="hero__count"><b>01</b> / ${pad(f.length)}</span>
+          <button class="car__btn hero__prev" type="button" aria-label="Previous project">${arrowSVG}</button>
+          <button class="car__btn hero__next" type="button" aria-label="Next project">${arrowSVG}</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="statement wrap">
+      <p class="statement__text">${esc(D.site.description).split(' ').map(w => `<span class="w">${w}</span>`).join(' ')}</p>
+      <div class="statement__cols">
+        ${intro.slice(1, 3).map(t => `<p data-r="up">${esc(t)}</p>`).join('')}
+        <div class="statement__cta" data-r="up">${cta(U.firm, 'The Firm')}</div>
+      </div>
+    </section>
+
+    <section class="sec" aria-labelledby="h-works">
+      <div class="wrap sec__head">
+        <h2 class="sec__title" id="h-works" data-r="words">${words('Projects')}</h2>
+        ${cta(U.projects, `All projects (${P.length})`)}
+      </div>
+      ${carousel(works, 'Selected projects')}
+    </section>
+
+    <section class="sec sec--map" aria-labelledby="h-map">
+      <div class="wrap sec__head">
+        <h2 class="sec__title" id="h-map" data-r="words">${words('Where we work')}</h2>
+      </div>
+      <div class="wrap">${mapBlock(P, 'home')}</div>
+    </section>
+
+    <section class="figures wrap" aria-label="The studio in numbers">
+      <div class="fig" data-r="up"><p class="fig__n" data-count="${P.length}">${P.length}</p><p class="fig__l">Projects in architecture, engineering, urban planning and landscape</p></div>
+      <div class="fig" data-r="up"><p class="fig__n" data-count="30">30<sup>+</sup></p><p class="fig__l">Architects and engineers</p></div>
+      <div class="fig" data-r="up"><p class="fig__n" data-count="${offices.length}">${offices.length}</p><p class="fig__l">Offices in ${join(offices.map(o => esc(o.city)))}</p></div>
+      <div class="fig" data-r="up"><p class="fig__n" data-count="${sections.length}">${sections.length}</p><p class="fig__l">${join(sections.map(s => esc(s.title)))}</p></div>
+    </section>
+
+    <section class="disc wrap" aria-label="Disciplines">
+      ${sections.map((s, i) => `
+      <div class="disc__row${i === 0 ? ' is-open' : ''}">
+        <h2 class="disc__h"><button class="disc__btn" type="button" aria-expanded="${i === 0}" aria-controls="disc-${i}">
+          <span class="disc__name">${esc(s.title)}</span><span class="plus" aria-hidden="true"></span>
+        </button></h2>
+        <div class="disc__panel" id="disc-${i}"${i === 0 ? '' : ' hidden'}>
+          <div class="disc__body">
+            <div class="disc__text">${lines(s.columns.flat()).map(t => isCaps(t) ? `<p class="sub">${esc(t)}</p>` : `<p>${esc(t)}</p>`).join('')}</div>
+            <div class="disc__imgs">${s.images.map(im => `<span class="disc__img">${pic(im, SZ.small, '')}</span>`).join('')}</div>
+          </div>
+        </div>
+      </div>`).join('')}
+    </section>
+
+    <section class="offices wrap" aria-label="Offices">
+      ${offices.map(o => `
+      <div class="office" data-r="up">
+        <h2 class="office__city">${esc(o.city)}</h2>
+        <p class="office__time caps" data-tz="${tz[o.city] || 'Europe/Rome'}">&nbsp;</p>
+        <p class="office__addr">${o.lines.map(esc).join('<br>')}${o.tel ? `<br><a href="${o.telHref}">${esc(o.tel)}</a>` : ''}</p>
+      </div>`).join('')}
+    </section>`;
+  }
+
+  function viewProjects(areaSlug) {
+    const active = areaSlug && areaBySlug[areaSlug] ? areaBySlug[areaSlug] : null;
+    const top = active ? (active.parent ? areaById[active.parent] : active) : null;
+    const list = active ? P.filter(p => inArea(p, active.slug)) : P;
+    return `
+    <section class="pindex wrap">
+      <div class="pindex__top">
+        <h1 class="pindex__title" data-r="words">${words(active ? active.name : 'Projects')}<sup class="pindex__count">${pad(list.length)}</sup></h1>
+        <div class="pindex__views" role="group" aria-label="View">
+          <button type="button" data-view="grid" aria-pressed="true">Grid</button>
+          <button type="button" data-view="list" aria-pressed="false">List</button>
+          <button type="button" data-view="map" aria-pressed="false">Map</button>
+        </div>
+      </div>
+      <nav class="filters" aria-label="Filter by area">
+        <a href="${U.projects}" data-area="" aria-current="${!top}">All<sup>${P.length}</sup></a>
+        ${tops.map(a => `<a href="${U.area(a)}" data-area="${a.slug}" aria-current="${!!top && top.id === a.id}">${esc(a.name)}<sup>${countIn(a.slug)}</sup></a>`).join('')}
+      </nav>
+      <nav class="subfilters" aria-label="Filter by category">
+        ${top ? childrenOf(top.id).filter(c => countIn(c.slug)).map(c => `<a href="${U.area(c)}" data-sub="${c.slug}" aria-current="${active && active.slug === c.slug}">${esc(c.name)}</a>`).join('') : ''}
+      </nav>
+
+      <ul class="pgrid" data-view-pane="grid">${P.map(p => `
+        <li class="pgrid__item${list.includes(p) ? '' : ' is-out'}" data-slug="${p.slug}">
+          <a class="card__link" href="${U.project(p.slug)}">
+            <span class="card__img">${pic(p.cover, SZ.grid, p.title)}</span>
+            <span class="card__cap"><span class="card__t">${esc(p.title)}</span><span class="card__l">${esc(loc(p))}</span></span>
+          </a>
+        </li>`).join('')}
+      </ul>
+
+      <div class="plist" data-view-pane="list" hidden>
+        <div class="plist__head" aria-hidden="true"><span></span><span>Project</span><span>Location</span><span class="h-c">Typology</span><span>Status</span></div>
+        <ul>${P.map(p => `
+          <li class="prow${list.includes(p) ? '' : ' is-out'}" data-slug="${p.slug}">
+            <a href="${U.project(p.slug)}">
+              <span class="prow__img">${pic({ src: smallUrl(p.cover, 300), w: 300, h: 200 }, SZ.thumb, '')}</span>
+              <span class="prow__t">${esc(p.title)}</span>
+              <span class="prow__l">${esc(loc(p))}</span>
+              <span class="prow__c">${esc(p.facts.Tipology || '')}</span>
+              <span class="prow__s">${esc(p.facts.Status || '')}</span>
+            </a>
+          </li>`).join('')}
+        </ul>
+      </div>
+
+      <div data-view-pane="map" hidden>${mapBlock(P, 'index')}</div>
+      <p class="empty" hidden>No projects in this category yet.</p>
+    </section>`;
+  }
+
+  function layoutGallery(items) {
+    const cycle = [['wide'], ['half', 'half'], ['right'], ['left'], ['half', 'half']];
+    const out = []; let i = 0, c = 0;
+    while (i < items.length) {
+      let pat = cycle[c % cycle.length];
+      if (pat.length > items.length - i) pat = ['wide'];
+      pat.forEach(k => out.push({ k, item: items[i++] }));
+      c++;
+    }
+    return out;
+  }
+
+  function splitLead(desc) {
+    let [lead, ...body] = desc;
+    if (lead && lead.length > 200) {
+      const m = lead.match(/^([\s\S]{30,240}?[.;])\s+([\s\S]+)$/);
+      if (m) { lead = m[1]; body = [m[2], ...body]; }
+    }
+    return { lead, body };
+  }
+
+  function viewProject(slug) {
+    const p = projBySlug[slug];
+    if (!p) return null;
+    const i = P.indexOf(p);
+    const prev = P[(i - 1 + P.length) % P.length], next = P[(i + 1) % P.length];
+    const gal = p.gallery.filter(g => g.src !== p.cover.src);
+    const areas = p.areas.map(id => areaById[id]).filter(Boolean).sort((a, b) => a.parent - b.parent);
+    const facts = Object.keys(FACT_LABELS).filter(k => p.facts[k]);
+    const { lead, body } = splitLead(p.desc);
+    const nearby = P.filter(q => q !== p && country(q) === country(p)).slice(0, 5);
+    const sizeFor = k => ({ wide: SZ.cover, half: SZ.half, right: SZ.third, left: SZ.third }[k]);
+
+    return `
+    <article class="proj">
+      <header class="proj__head wrap">
+        <h1 class="proj__title">${words(p.title)}</h1>
+        <p class="proj__loc caps"><span class="ln"><span class="ln__in">${esc(loc(p))}</span></span></p>
+      </header>
+
+      <div class="proj__top wrap">
+        <figure class="proj__cover frame" style="--nw:${p.cover.w}px;--ar:${(p.cover.w / p.cover.h).toFixed(3)}">${pic(p.cover, SZ.cover, p.title, { eager: true })}</figure>
+        <dl class="facts">${facts.map(k => `<div class="facts__row"><dt>${FACT_LABELS[k]}</dt><dd>${esc(p.facts[k])}</dd></div>`).join('')}</dl>
+      </div>
+
+      <section class="proj__text wrap" aria-label="Description">
+        ${lead ? `<p class="proj__lead" data-r="words">${words(lead)}</p>` : ''}
+        ${body.length ? `<div class="proj__body">${body.map(t => `<p data-r="up">${esc(t)}</p>`).join('')}</div>` : ''}
+      </section>
+
+      ${p.geo ? `
+      <section class="proj__map wrap" aria-labelledby="h-loc">
+        <div class="proj__mapgrid">
+          <div class="locmap" data-locmap="${p.slug}" aria-label="Map: ${esc(loc(p))}"></div>
+          <div class="proj__mapside">
+            <h2 class="proj__h" id="h-loc" data-r="words">${words('Location')}</h2>
+            <p class="proj__place">${esc(loc(p))}</p>
+            <ul class="tags">${areas.map(a => `<li><a href="${U.area(a)}">${esc(a.name)}</a></li>`).join('')}</ul>
+            ${nearby.length ? `<p class="proj__near-h caps">Also in ${esc(country(p))}</p><ul class="proj__near">${nearby.map(q => `<li><a href="${U.project(q.slug)}"><span>${esc(q.title)}</span><span>${esc(loc(q))}</span></a></li>`).join('')}</ul>` : ''}
+          </div>
+        </div>
+      </section>` : ''}
+
+      <section class="gallery wrap" aria-label="Project images">
+        ${layoutGallery(gal).map(({ k, item }) => {
+          const n = p.gallery.indexOf(item);
+          return `<figure class="gitem gitem--${k}" style="--nw:${item.w}px;--ar:${(item.w / item.h).toFixed(3)}"><button type="button" class="gitem__btn" data-i="${n}" aria-label="Enlarge image ${n + 1} of ${p.gallery.length}">${pic(item, sizeFor(k), `${p.title}, image ${n + 1}`)}</button></figure>`;
+        }).join('')}
+      </section>
+
+      <nav class="pnav wrap" aria-label="More projects">
+        <a class="pnav__item pnav__item--prev" href="${U.project(prev.slug)}">
+          <span class="pnav__dir caps">Previous</span>
+          <span class="pnav__img">${pic(prev.cover, SZ.half, prev.title)}</span>
+          <span class="pnav__t">${esc(prev.title)}</span>
+        </a>
+        <a class="pnav__item pnav__item--next" href="${U.project(next.slug)}">
+          <span class="pnav__dir caps">Next</span>
+          <span class="pnav__img">${pic(next.cover, SZ.half, next.title)}</span>
+          <span class="pnav__t">${esc(next.title)}</span>
+        </a>
+      </nav>
+      <div class="wrap pnav__all">${cta(U.projects, 'All projects')}</div>
+    </article>`;
+  }
+
+  function viewFirm() {
+    const F = D.firm;
+    const c1 = lines(F.intro[0] || []), c2 = lines(F.intro[1] || []);
+    const iso = c1.find(t => /ISO/.test(t));
+    const col1 = c1.slice(1).filter(t => t !== iso);
+    const secs = F.sections.filter(s => s.images.length);
+    const phil = F.sections.find(s => !s.images.length);
+    const para = t => (isCaps(t) ? `<p class="sub">${esc(t)}</p>` : `<p data-r="up">${esc(t)}</p>`);
+    return `
+    <section class="phead wrap">
+      <h1 class="phead__title">${words('The Firm')}</h1>
+      <p class="phead__lead" data-r="words">${words(c1[0] || '')}</p>
+    </section>
+    <figure class="firm__hero wrap"><span class="frame" style="--nw:${F.hero.w}px">${pic(F.hero, '(max-width: 1680px) 100vw, 1620px', 'H&A Associati | An Italian architectural firm', { eager: true })}</span></figure>
+    <section class="firm__intro wrap">
+      <div class="firm__col">${col1.map(t => `<p data-r="up">${esc(t)}</p>`).join('')}${iso ? `<p class="sub" data-r="up">${esc(iso)}</p>` : ''}</div>
+      <div class="firm__col">${c2.map(t => `<p data-r="up">${esc(t)}</p>`).join('')}</div>
+    </section>
+    ${secs.map(s => `
+    <section class="fsec wrap">
+      <div class="fsec__grid">
+        <h2 class="fsec__title" data-r="words">${words(s.title)}</h2>
+        <div class="fsec__body">${lines(s.columns.flat()).map(para).join('')}</div>
+      </div>
+      <div class="fsec__imgs">${s.images.map(im => `<span class="fsec__img">${pic(im, SZ.small, '')}</span>`).join('')}</div>
+    </section>`).join('')}
+    ${phil ? `
+    <section class="fphil" data-dark>
+      <div class="wrap">
+        <h2 class="fphil__title" data-r="words">${words(phil.title)}</h2>
+        <div class="fphil__cols">${phil.columns.map(col => `<div>${lines(col).map(t => `<p data-r="up">${esc(t)}</p>`).join('')}</div>`).join('')}</div>
+      </div>
+    </section>` : ''}`;
+  }
+
+  const initials = n => n.split(/\s+/).map(w => w[0]).slice(0, 2).join('');
+  function viewPeople() {
+    const [partners, ...groups] = D.people;
+    const photo = (m, sizes) => (m.photo ? pic({ src: m.photo, w: 660, h: 660 }, sizes, m.name) : `<span class="ph-none" aria-hidden="true">${esc(initials(m.name))}</span>`);
+    return `
+    <section class="phead wrap">
+      <h1 class="phead__title">${words('People')}</h1>
+    </section>
+    <section class="psec wrap" aria-labelledby="g-0">
+      <h2 class="psec__title" id="g-0" data-r="words"><span>${words(partners.group)}</span><sup>${pad(partners.members.length)}</sup></h2>
+      <div class="partners">
+        ${partners.members.map((m, i) => `
+        <div class="partner">
+          <h3 class="partner__h"><button class="partner__btn" type="button" aria-expanded="false" aria-controls="pp-${i}">
+            <span class="partner__ph">${photo(m, '110px')}</span>
+            <span class="partner__name">${esc(m.name)}</span>
+            <span class="partner__role">${esc(m.role)}</span>
+            <span class="plus" aria-hidden="true"></span>
+          </button></h3>
+          <div class="partner__panel" id="pp-${i}" hidden>
+            <div class="partner__body">
+              <span class="partner__big">${photo(m, '(max-width: 860px) 0px, 33vw')}</span>
+              <div class="partner__text">${(m.bio.length ? m.bio : [m.role]).map(t => `<p>${esc(t)}</p>`).join('')}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </section>
+    ${groups.map((g, gi) => `
+    <section class="psec wrap" aria-labelledby="g-${gi + 1}">
+      <h2 class="psec__title" id="g-${gi + 1}" data-r="words"><span>${words(g.group)}</span><sup>${pad(g.members.length)}</sup></h2>
+      <ul class="team">
+        ${g.members.map((m, i) => `
+        <li class="member" data-r="up">
+          <span class="member__ph">${photo(m, '(max-width: 560px) 46vw, (max-width: 1100px) 24vw, 18vw')}</span>
+          <h3 class="member__name">${esc(m.name)}</h3>
+          <p class="member__role">${esc(m.role)}</p>
+          ${m.bio.length ? `<button class="member__more" type="button" aria-expanded="false" aria-controls="mb-${gi}-${i}"><span>Profile</span><span class="plus" aria-hidden="true"></span></button>
+          <div class="member__bio" id="mb-${gi}-${i}" hidden>${m.bio.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : ''}
+        </li>`).join('')}
+      </ul>
+    </section>`).join('')}`;
+  }
+
+  function viewNotFound() {
+    return `<section class="phead wrap nf"><h1 class="phead__title">${words('Page not found')}</h1><p class="phead__lead">${cta(U.home, 'Back to home')}</p></section>`;
+  }
+
+  /* ============================================================= ROUTING */
+  function match(pathname) {
+    const parts = pathname.replace(/index\.html$/, '').split('/').filter(Boolean);
+    if (!parts.length) return { name: 'home' };
+    if (parts[0] === 'projects' && parts.length === 1) return { name: 'projects' };
+    if (parts[0] === 'projects' && projBySlug[parts[1]]) return { name: 'project', slug: parts[1] };
+    if (parts[0] === 'area' && areaBySlug[parts[parts.length - 1]]) return { name: 'projects', area: parts[parts.length - 1] };
+    if (parts[0] === 'the-firm') return { name: 'firm' };
+    if (parts[0] === 'people') return { name: 'people' };
+    return { name: '404' };
+  }
+
+  const ORG = {
+    '@type': 'Organization', '@id': SITE_URL + '/#org', name: D.site.name, url: SITE_URL + '/',
+    logo: SITE_URL + '/assets/img/logo.svg', email: D.site.contacts.mail, telephone: D.site.contacts.tel,
+    description: D.site.description,
+    address: { '@type': 'PostalAddress', streetAddress: 'Banchina dell’Azoto 15/d', postalCode: '30175', addressLocality: 'Marghera, Venice', addressCountry: 'IT' },
+    location: D.site.offices.map(o => ({ '@type': 'Place', name: `H&A Associati ${o.city}`, address: o.lines.join(', ') })),
+    sameAs: D.site.social.filter(s => s.name !== 'Google').map(s => s.href),
+  };
+  const crumbs = items => ({ '@type': 'BreadcrumbList', itemListElement: items.map(([name, path], i) => ({ '@type': 'ListItem', position: i + 1, name, item: SITE_URL + path })) });
+
+  function render(pathname) {
+    const r = match(pathname);
+    const base = { name: r.name, route: r };
+    switch (r.name) {
+      case 'home':
+        return { ...base, html: viewHome(), meta: { title: 'H&A Associati | Architecture and engineering, Venice and Shanghai', description: D.site.description, path: '/', image: featured[0].cover.src, jsonld: [ORG, { '@type': 'WebSite', name: D.site.name, url: SITE_URL + '/' }] } };
+      case 'projects': {
+        const a = r.area && areaBySlug[r.area];
+        const title = a ? `${a.name} | Projects | H&A Associati` : 'Projects | H&A Associati';
+        const n = a ? countIn(a.slug) : P.length;
+        const path = a ? U.area(a) : U.projects;
+        return { ...base, html: viewProjects(r.area), meta: { title, description: `${n} ${a ? a.name + ' ' : ''}projects by H&A Associati, architecture and engineering studio based in Venice and Shanghai.`, path, image: P[0].cover.src, jsonld: [ORG, crumbs([['Home', '/'], ['Projects', U.projects]].concat(a ? [[a.name, path]] : [])), { '@type': 'ItemList', itemListElement: (a ? P.filter(p => inArea(p, a.slug)) : P).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE_URL + U.project(p.slug), name: p.title })) }] } };
+      }
+      case 'project': {
+        const p = projBySlug[r.slug];
+        const desc = (p.desc[0] || '').slice(0, 158);
+        return { ...base, html: viewProject(r.slug), meta: { title: `${p.title}, ${loc(p)} | H&A Associati`, description: desc, path: U.project(p.slug), image: p.cover.src, jsonld: [crumbs([['Home', '/'], ['Projects', U.projects], [p.title, U.project(p.slug)]]), { '@type': 'CreativeWork', name: p.title, description: p.desc.join(' '), url: SITE_URL + U.project(p.slug), image: p.gallery.map(g => g.src), genre: p.facts.Tipology, creator: { '@id': SITE_URL + '/#org' }, locationCreated: { '@type': 'Place', name: loc(p), ...(p.geo ? { geo: { '@type': 'GeoCoordinates', latitude: p.geo[0], longitude: p.geo[1] } } : {}) } }] } };
+      }
+      case 'firm':
+        return { ...base, html: viewFirm(), meta: { title: 'The Firm | H&A Associati', description: (lines(D.firm.intro[0] || [])[0] || '').slice(0, 158), path: U.firm, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['The Firm', U.firm]])] } };
+      case 'people':
+        return { ...base, html: viewPeople(), meta: { title: 'People | H&A Associati', description: `Partners and project team of H&A Associati: ${D.people[0].members.map(m => m.name).join(', ')} and over thirty architects and engineers.`.slice(0, 158), path: U.people, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['People', U.people]])] } };
+      default:
+        return { ...base, html: viewNotFound(), meta: { title: 'Page not found | H&A Associati', description: D.site.description, path: '/404.html', image: featured[0].cover.src, noindex: true, jsonld: [] } };
+    }
+  }
+
+  function allPaths() {
+    return ['/', U.projects, U.firm, U.people]
+      .concat(D.areas.filter(a => countIn(a.slug)).map(U.area))
+      .concat(P.map(p => U.project(p.slug)));
+  }
+
+  return {
+    SITE_URL, U, esc, pad, words, chars, pic, smallUrl, logoSVG, markSVG, header, footer, render, match, allPaths,
+    data: { P, featured, projBySlug, areaBySlug, areaById, inArea, loc, country, COUNTRIES },
+  };
+});
