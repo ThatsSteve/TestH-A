@@ -1,7 +1,9 @@
 /* H&A Associati — static build
    Pre-renders every route to its own index.html (same URLs as hastudio.it),
    with title, description, canonical, Open Graph and JSON-LD, plus sitemap.xml
-   and robots.txt.  Usage:  node build.js  */
+   and robots.txt.
+   Usage:  node build.js                  (site at the domain root)
+           node build.js --base=TestH-A   (site in a sub-folder, e.g. GitHub Pages)  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +12,11 @@ const crypto = require('crypto');
 const ROOT = __dirname;
 const D = require('./assets/js/data.js');
 const L = require('./assets/js/logo.js');
-const V = require('./assets/js/views.js')(D, L);
+const arg = process.argv.find(a => a.startsWith('--base='));
+// Accepts "--base=TestH-A" or "--base=/TestH-A" (some shells rewrite leading slashes)
+const rawBase = (arg ? arg.slice(7) : '').replace(/\\/g, '/').split('/').filter(Boolean).pop() || '';
+const BASE = rawBase ? '/' + rawBase : '';
+const V = require('./assets/js/views.js')(D, L, BASE);
 
 // Cache-busting version from the asset contents
 const assets = ['assets/css/style.css', 'assets/js/data.js', 'assets/js/logo.js', 'assets/js/views.js', 'assets/js/hero-gl.js', 'assets/js/map.js', 'assets/js/app.js'];
@@ -39,12 +45,12 @@ function page(r) {
 <meta property="og:url" content="${url}">
 <meta property="og:image" content="${V.esc(m.image)}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/assets/img/logo.svg" type="image/svg+xml">
-<link rel="preload" href="/assets/fonts/rubik-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/rubik-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="${BASE}/assets/img/logo.svg" type="image/svg+xml">
+<link rel="preload" href="${BASE}/assets/fonts/rubik-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="${BASE}/assets/fonts/rubik-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://www.hastudio.it">
-<link rel="stylesheet" href="/assets/css/style.css?v=${ver}">
-<script>document.documentElement.classList.add('js');if('scrollRestoration' in history)history.scrollRestoration='manual';</script>
+<link rel="stylesheet" href="${BASE}/assets/css/style.css?v=${ver}">
+<script>window.HA_BASE=${JSON.stringify(BASE)};document.documentElement.classList.add('js');if('scrollRestoration' in history)history.scrollRestoration='manual';</script>
 ${ld}
 </head>
 <body id="top">
@@ -66,12 +72,12 @@ ${V.footer()}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
 <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="/assets/js/data.js?v=${ver}" defer></script>
-<script src="/assets/js/logo.js?v=${ver}" defer></script>
-<script src="/assets/js/views.js?v=${ver}" defer></script>
-<script src="/assets/js/hero-gl.js?v=${ver}" defer></script>
-<script src="/assets/js/map.js?v=${ver}" defer></script>
-<script src="/assets/js/app.js?v=${ver}" defer></script>
+<script src="${BASE}/assets/js/data.js?v=${ver}" defer></script>
+<script src="${BASE}/assets/js/logo.js?v=${ver}" defer></script>
+<script src="${BASE}/assets/js/views.js?v=${ver}" defer></script>
+<script src="${BASE}/assets/js/hero-gl.js?v=${ver}" defer></script>
+<script src="${BASE}/assets/js/map.js?v=${ver}" defer></script>
+<script src="${BASE}/assets/js/app.js?v=${ver}" defer></script>
 </body>
 </html>
 `;
@@ -100,6 +106,7 @@ ${paths.map(p => {
 }).join('\n')}
 </urlset>
 `);
+write('.nojekyll', '');
 write('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${V.SITE_URL}/sitemap.xml\n`);
 
-console.log(`Built ${paths.length} pages + 404, sitemap.xml, robots.txt (v${ver})`);
+console.log(`Built ${paths.length} pages${BASE ? ' for ' + BASE + '/' : ''} + 404, sitemap.xml, robots.txt (v${ver})`);

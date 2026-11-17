@@ -211,7 +211,7 @@
       cur = i;
       steps.forEach((s, k) => s.classList.toggle('is-active', k === i));
       count.textContent = pad(i + 1);
-      titleA.href = openEl.href = V.U.project(p.slug);
+      titleA.href = openEl.href = V.link(V.U.project(p.slug));
       if (useGL) gl.goTo(i); else imgs.forEach((im, k) => im.classList.toggle('is-on', k === i));
       if (ANIM) {
         gsap.timeline()
@@ -326,7 +326,7 @@
     function renderSub() {
       const top = active ? (active.parent ? areaById[active.parent] : active) : null;
       const kids = top ? V.data.P && window.HA_DATA.areas.filter(a => a.parent === top.id && P.some(p => inArea(p, a.slug))) : [];
-      sub.innerHTML = kids.map(c => `<a href="${V.U.area(c)}" data-sub="${c.slug}" aria-current="${active && active.slug === c.slug}">${V.esc(c.name)}</a>`).join('');
+      sub.innerHTML = kids.map(c => `<a href="${V.link(V.U.area(c))}" data-sub="${c.slug}" aria-current="${active && active.slug === c.slug}">${V.esc(c.name)}</a>`).join('');
       $$('.filters a', root).forEach(a => a.setAttribute('aria-current', (a.dataset.area || '') === (top ? top.slug : '')));
     }
     function apply(animate) {
@@ -339,7 +339,7 @@
       $$('.wm', titleEl).forEach(w => w.remove());
       titleEl.insertAdjacentHTML('afterbegin', V.words(name));
       renderSub();
-      const path = active ? V.U.area(active) : V.U.projects;
+      const path = V.link(active ? V.U.area(active) : V.U.projects);
       if (location.pathname !== path) history.replaceState({ path }, '', path);
       document.title = active ? `${active.name} | Projects | H&A Associati` : 'Projects | H&A Associati';
       if (mapApi) mapApi.setProjects(list);

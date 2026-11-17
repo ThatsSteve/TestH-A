@@ -125,7 +125,7 @@
 
     function card(slug) {
       const p = V.data.projBySlug[slug];
-      return `<a class="mpop__item" href="${V.U.project(slug)}"><img src="${V.esc(V.smallUrl(p.cover, 300))}" alt="" width="96" height="64" loading="lazy"><span><b>${V.esc(p.title)}</b><small>${V.esc(V.data.loc(p))}</small></span></a>`;
+      return `<a class="mpop__item" href="${V.link(V.U.project(slug))}"><img src="${V.esc(V.smallUrl(p.cover, 300))}" alt="" width="96" height="64" loading="lazy"><span><b>${V.esc(p.title)}</b><small>${V.esc(V.data.loc(p))}</small></span></a>`;
     }
 
     function openPopup(coords, slugs) {
@@ -236,7 +236,7 @@
           brand(map);
           nearby.forEach(q => {
             const a = document.createElement('a');
-            a.className = 'mk mk--small'; a.href = V.U.project(q.slug); a.title = q.title;
+            a.className = 'mk mk--small'; a.href = V.link(V.U.project(q.slug)); a.title = q.title;
             a.setAttribute('aria-label', q.title);
             new maplibregl.Marker({ element: a }).setLngLat(lngLat(q.geo)).addTo(map);
           });

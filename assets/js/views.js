@@ -5,9 +5,13 @@
    ========================================================================== */
 (function (factory) {
   if (typeof module !== 'undefined') module.exports = factory;
-  else window.HA_VIEWS = factory(window.HA_DATA, window.HA_LOGO);
-})(function (D, L) {
+  else window.HA_VIEWS = factory(window.HA_DATA, window.HA_LOGO, window.HA_BASE || '');
+})(function (D, L, BASE) {
   'use strict';
+  BASE = (BASE || '').replace(/\/$/, '');
+  // Site may live in a sub-folder (e.g. GitHub Pages): prefix internal links
+  const link = p => BASE + p;
+  const withBase = h => (BASE ? h.replace(/(href|src)="\/(?!\/)/g, `$1="${BASE}/`) : h);
 
   const SITE_URL = 'https://www.hastudio.it';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -80,7 +84,7 @@
 
   /* -------------------------------------------------------------- chrome */
   function header() {
-    return `
+    return withBase(`
     <header class="header">
       <div class="header__bar wrap">
         <a class="header__logo" href="/" aria-label="H&amp;A Associati, home">${logoSVG()}</a>
@@ -106,12 +110,12 @@
           <a href="${D.site.contacts.telHref}">${esc(D.site.contacts.tel)}</a>
         </div>
       </div>
-    </div>`;
+    </div>`);
   }
 
   function footer() {
     const s = D.site;
-    return `
+    return withBase(`
     <footer class="footer" id="contacts">
       <div class="wrap footer__top">
         <div class="footer__call">
@@ -139,7 +143,7 @@
         <span>${esc(s.legal.copy)} | ${esc(s.legal.vat)}</span>
         <a class="footer__top" href="#top">Back to the top</a>
       </div>
-    </footer>`;
+    </footer>`);
   }
 
   /* -------------------------------------------------------- shared parts */
@@ -501,6 +505,7 @@
 
   /* ============================================================= ROUTING */
   function match(pathname) {
+    if (BASE && pathname.startsWith(BASE)) pathname = pathname.slice(BASE.length) || '/';
     const parts = pathname.replace(/index\.html$/, '').split('/').filter(Boolean);
     if (!parts.length) return { name: 'home' };
     if (parts[0] === 'projects' && parts.length === 1) return { name: 'projects' };
@@ -526,25 +531,25 @@
     const base = { name: r.name, route: r };
     switch (r.name) {
       case 'home':
-        return { ...base, html: viewHome(), meta: { title: 'H&A Associati | Architecture and engineering, Venice and Shanghai', description: D.site.description, path: '/', image: featured[0].cover.src, jsonld: [ORG, { '@type': 'WebSite', name: D.site.name, url: SITE_URL + '/' }] } };
+        return { ...base, html: withBase(viewHome()), meta: { title: 'H&A Associati | Architecture and engineering, Venice and Shanghai', description: D.site.description, path: '/', image: featured[0].cover.src, jsonld: [ORG, { '@type': 'WebSite', name: D.site.name, url: SITE_URL + '/' }] } };
       case 'projects': {
         const a = r.area && areaBySlug[r.area];
         const title = a ? `${a.name} | Projects | H&A Associati` : 'Projects | H&A Associati';
         const n = a ? countIn(a.slug) : P.length;
         const path = a ? U.area(a) : U.projects;
-        return { ...base, html: viewProjects(r.area), meta: { title, description: `${n} ${a ? a.name + ' ' : ''}projects by H&A Associati, architecture and engineering studio based in Venice and Shanghai.`, path, image: P[0].cover.src, jsonld: [ORG, crumbs([['Home', '/'], ['Projects', U.projects]].concat(a ? [[a.name, path]] : [])), { '@type': 'ItemList', itemListElement: (a ? P.filter(p => inArea(p, a.slug)) : P).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE_URL + U.project(p.slug), name: p.title })) }] } };
+        return { ...base, html: withBase(viewProjects(r.area)), meta: { title, description: `${n} ${a ? a.name + ' ' : ''}projects by H&A Associati, architecture and engineering studio based in Venice and Shanghai.`, path, image: P[0].cover.src, jsonld: [ORG, crumbs([['Home', '/'], ['Projects', U.projects]].concat(a ? [[a.name, path]] : [])), { '@type': 'ItemList', itemListElement: (a ? P.filter(p => inArea(p, a.slug)) : P).map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE_URL + U.project(p.slug), name: p.title })) }] } };
       }
       case 'project': {
         const p = projBySlug[r.slug];
         const desc = (p.desc[0] || '').slice(0, 158);
-        return { ...base, html: viewProject(r.slug), meta: { title: `${p.title}, ${loc(p)} | H&A Associati`, description: desc, path: U.project(p.slug), image: p.cover.src, jsonld: [crumbs([['Home', '/'], ['Projects', U.projects], [p.title, U.project(p.slug)]]), { '@type': 'CreativeWork', name: p.title, description: p.desc.join(' '), url: SITE_URL + U.project(p.slug), image: p.gallery.map(g => g.src), genre: p.facts.Tipology, creator: { '@id': SITE_URL + '/#org' }, locationCreated: { '@type': 'Place', name: loc(p), ...(p.geo ? { geo: { '@type': 'GeoCoordinates', latitude: p.geo[0], longitude: p.geo[1] } } : {}) } }] } };
+        return { ...base, html: withBase(viewProject(r.slug)), meta: { title: `${p.title}, ${loc(p)} | H&A Associati`, description: desc, path: U.project(p.slug), image: p.cover.src, jsonld: [crumbs([['Home', '/'], ['Projects', U.projects], [p.title, U.project(p.slug)]]), { '@type': 'CreativeWork', name: p.title, description: p.desc.join(' '), url: SITE_URL + U.project(p.slug), image: p.gallery.map(g => g.src), genre: p.facts.Tipology, creator: { '@id': SITE_URL + '/#org' }, locationCreated: { '@type': 'Place', name: loc(p), ...(p.geo ? { geo: { '@type': 'GeoCoordinates', latitude: p.geo[0], longitude: p.geo[1] } } : {}) } }] } };
       }
       case 'firm':
-        return { ...base, html: viewFirm(), meta: { title: 'The Firm | H&A Associati', description: (lines(D.firm.intro[0] || [])[0] || '').slice(0, 158), path: U.firm, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['The Firm', U.firm]])] } };
+        return { ...base, html: withBase(viewFirm()), meta: { title: 'The Firm | H&A Associati', description: (lines(D.firm.intro[0] || [])[0] || '').slice(0, 158), path: U.firm, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['The Firm', U.firm]])] } };
       case 'people':
-        return { ...base, html: viewPeople(), meta: { title: 'People | H&A Associati', description: `Partners and project team of H&A Associati: ${D.people[0].members.map(m => m.name).join(', ')} and over thirty architects and engineers.`.slice(0, 158), path: U.people, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['People', U.people]])] } };
+        return { ...base, html: withBase(viewPeople()), meta: { title: 'People | H&A Associati', description: `Partners and project team of H&A Associati: ${D.people[0].members.map(m => m.name).join(', ')} and over thirty architects and engineers.`.slice(0, 158), path: U.people, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['People', U.people]])] } };
       default:
-        return { ...base, html: viewNotFound(), meta: { title: 'Page not found | H&A Associati', description: D.site.description, path: '/404.html', image: featured[0].cover.src, noindex: true, jsonld: [] } };
+        return { ...base, html: withBase(viewNotFound()), meta: { title: 'Page not found | H&A Associati', description: D.site.description, path: '/404.html', image: featured[0].cover.src, noindex: true, jsonld: [] } };
     }
   }
 
@@ -555,7 +560,7 @@
   }
 
   return {
-    SITE_URL, U, esc, pad, words, chars, pic, smallUrl, logoSVG, markSVG, header, footer, render, match, allPaths,
+    SITE_URL, BASE, link, U, esc, pad, words, chars, pic, smallUrl, logoSVG, markSVG, header, footer, render, match, allPaths,
     data: { P, featured, projBySlug, areaBySlug, areaById, inArea, loc, country, COUNTRIES },
   };
 });

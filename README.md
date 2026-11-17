@@ -19,7 +19,17 @@ node build.js
 python -m http.server 5173
 ```
 
-Then open http://localhost:5173. The site must be served from the domain root, because it uses `/assets/...` paths and real URLs (`/projects/<slug>/`, `/area/<area>/`, `/the-firm/`, `/people/`). These are the same URLs as the current site.
+Then open http://localhost:5173. The URLs are the same as on the current site: `/projects/<slug>/`, `/area/<area>/`, `/the-firm/`, `/people/`.
+
+### GitHub Pages (sub-folder)
+
+The pages in this repository are built for GitHub Pages, where the site lives at `https://thatssteve.github.io/TestH-A/`:
+
+```bash
+node build.js --base=TestH-A
+```
+
+For the final domain (site at the root), build without `--base`.
 
 ## Notes
 
