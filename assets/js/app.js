@@ -394,39 +394,11 @@
     const cover = $('.proj__cover img');
     page.ready = new Promise(res => { if (!cover || cover.complete) res(); else { cover.onload = cover.onerror = res; } });
 
-    // Lightbox
-    const lb = $('.lightbox'), lbImg = $('.lightbox__stage img'), lbCount = $('.lightbox__count');
-    let li = 0, lastFocus = null;
-    const show = i => {
-      li = (i + p.gallery.length) % p.gallery.length;
-      lbImg.src = p.gallery[li].src;
-      lbImg.alt = `${p.title}, image ${li + 1}`;
-      lbCount.textContent = `${pad(li + 1)} / ${pad(p.gallery.length)}`;
-      if (ANIM) gsap.fromTo(lbImg, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out' });
-    };
-    const open = i => {
-      lastFocus = document.activeElement;
-      lb.hidden = false; lock(true); show(i);
-      if (ANIM) gsap.fromTo(lb, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' });
-      $('.lightbox__close').focus();
-    };
-    const close = () => {
-      const done = () => { lb.hidden = true; lock(false); lastFocus && lastFocus.focus(); };
-      if (ANIM) gsap.to(lb, { opacity: 0, duration: 0.3, onComplete: done }); else done();
-    };
-    $$('.gitem__btn').forEach(b => b.addEventListener('click', () => open(+b.dataset.i)));
-    const onKey = e => {
-      if (lb.hidden) return;
-      if (e.key === 'Escape') close();
-      if (e.key === 'ArrowRight') show(li + 1);
-      if (e.key === 'ArrowLeft') show(li - 1);
-    };
-    $('.lightbox__close').onclick = close; $('.lightbox__prev').onclick = () => show(li - 1); $('.lightbox__next').onclick = () => show(li + 1);
-    let sx = null;
-    lb.ontouchstart = e => { sx = e.touches[0].clientX; };
-    lb.ontouchend = e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 40) show(li + (dx < 0 ? 1 : -1)); };
-    addEventListener('keydown', onKey);
-    page.cleanup.push(() => { removeEventListener('keydown', onKey); if (!lb.hidden) { lb.hidden = true; lock(false); } });
+    // Image viewer: cover and every gallery image open it
+    const LB = window.HA_LIGHTBOX;
+    const items = V.lightboxItems(p);
+    $$('[data-lb]').forEach(b => b.addEventListener('click', () => LB && LB.open(items, +b.dataset.lb, { title: p.title, lock })));
+    page.cleanup.push(() => { if (LB && LB.isOpen) LB.close(true); });
 
     // Location map
     const lm = $('[data-locmap]');
@@ -496,6 +468,8 @@
     teardown();
     const r = V.render(pathname);
     page.name = r.name;
+    page.route = r.route;
+    page.path = location.pathname;
     main.innerHTML = r.html;
     setMeta(r.meta);
     $$('.header__nav a').forEach(a => {
@@ -522,17 +496,17 @@
       await gsap.timeline()
         .set(curtain, { visibility: 'visible', clipPath: 'inset(100% 0% 0% 0%)' })
         .set(glyphs, { opacity: 0, y: 40 })
-        .to(curtain, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'expo.inOut' })
-        .to(glyphs, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', stagger: 0.03 }, '-=0.25');
+        .to(curtain, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.42, ease: 'power3.inOut' })
+        .to(glyphs, { opacity: 1, y: 0, duration: 0.3, ease: 'power3.out', stagger: 0.012 }, '-=0.15');
     }
     render(pathname);
     main.focus({ preventScroll: true });
     if (ANIM) {
-      await Promise.race([page.ready || Promise.resolve(), new Promise(res => setTimeout(res, 1200))]);
+      await Promise.race([page.ready || Promise.resolve(), new Promise(res => setTimeout(res, 450))]);
       await gsap.timeline()
-        .to(glyphs, { opacity: 0, y: -30, duration: 0.4, ease: 'expo.in', stagger: 0.015 })
-        .to(curtain, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.8, ease: 'expo.inOut' }, '-=0.1')
-        .add(() => page.intro && page.intro(), '-=0.45')
+        .to(glyphs, { opacity: 0, y: -20, duration: 0.18, ease: 'power2.in' })
+        .to(curtain, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.5, ease: 'power3.inOut' }, '-=0.05')
+        .add(() => page.intro && page.intro(), '-=0.32')
         .set(curtain, { visibility: 'hidden' });
     } else page.intro && page.intro();
     busy = false;
@@ -562,7 +536,12 @@
       if (url.pathname === location.pathname) { scrollToEl(document.body); return; }
       go(url.pathname, true);
     });
-    addEventListener('popstate', () => go(location.pathname, false));
+    addEventListener('popstate', () => {
+      // The phone's back button closes the image viewer instead of leaving the page
+      if (window.HA_LIGHTBOX && window.HA_LIGHTBOX.handlePop()) return;
+      if (page.route && location.pathname === page.path) return;
+      go(location.pathname, false);
+    });
   }
 
   /* ------------------------------------------------------------ loader */
@@ -580,14 +559,14 @@
     let seen = false;
     try { seen = sessionStorage.getItem('ha-intro') === '1'; sessionStorage.setItem('ha-intro', '1'); } catch (e) { /* storage unavailable */ }
     const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
-    const ready = Promise.race([Promise.all([page.ready || Promise.resolve(), fonts]), new Promise(r => setTimeout(r, seen ? 1500 : 6000))]);
+    const ready = Promise.race([Promise.all([page.ready || Promise.resolve(), fonts]), new Promise(r => setTimeout(r, seen ? 700 : 2500))]);
 
     if (!loader) { await ready; page.intro && page.intro(); return; }
     if (seen) {
       $('.loader__count', loader) && $('.loader__count', loader).remove();
       gsap.set($$('.lg, .lb, .ls', loader), { opacity: 0 });
       await ready;
-      await gsap.to(loader, { opacity: 0, duration: 0.5, ease: 'power2.out' });
+      await gsap.to(loader, { opacity: 0, duration: 0.3, ease: 'power2.out' });
       loader.remove();
       page.intro && page.intro();
       ScrollTrigger.refresh();
@@ -599,19 +578,19 @@
     const prog = { v: 0, target: 0 };
     page.loadProgress = v => { prog.target = Math.max(prog.target, v); };
     const intro = gsap.timeline()
-      .from($$('.lg', mark), { y: 60, opacity: 0, duration: 1.2, ease: 'expo.out', stagger: 0.08 }, 0.1)
-      .from($('.lb', mark), { scaleX: 0, transformOrigin: '0 50%', duration: 1.2, ease: 'expo.inOut' }, 0.2)
-      .from($$('.ls', mark), { opacity: 0, y: 10, duration: 0.7, ease: 'expo.out', stagger: 0.04 }, 0.7);
-    const counter = gsap.to(prog, { v: 100, duration: 2, ease: 'power2.inOut', onUpdate: () => { count.textContent = Math.round(Math.min(prog.v, 30 + prog.target * 70)); } });
+      .from($$('.lg', mark), { y: 40, opacity: 0, duration: 0.7, ease: 'expo.out', stagger: 0.05 }, 0.05)
+      .from($('.lb', mark), { scaleX: 0, transformOrigin: '0 50%', duration: 0.7, ease: 'expo.inOut' }, 0.1)
+      .from($$('.ls', mark), { opacity: 0, y: 8, duration: 0.4, ease: 'expo.out', stagger: 0.02 }, 0.35);
+    const counter = gsap.to(prog, { v: 100, duration: 1, ease: 'power2.inOut', onUpdate: () => { count.textContent = Math.round(Math.min(prog.v, 30 + prog.target * 70)); } });
     await ready;
     prog.target = 1;
     await Promise.all([counter, intro]);
     count.textContent = '100';
     await gsap.timeline()
-      .to(count, { yPercent: -110, duration: 0.5, ease: 'expo.in' })
-      .to($$('.lg, .lb, .ls', mark), { opacity: 0, y: -24, duration: 0.5, ease: 'expo.in', stagger: 0.015 }, 0)
-      .to(loader, { clipPath: 'inset(0% 0% 100% 0%)', duration: 1, ease: 'expo.inOut' }, 0.35)
-      .add(() => page.intro && page.intro(), 0.75);
+      .to(count, { yPercent: -110, duration: 0.3, ease: 'power2.in' })
+      .to($$('.lg, .lb, .ls', mark), { opacity: 0, y: -16, duration: 0.3, ease: 'power2.in' }, 0)
+      .to(loader, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.6, ease: 'power3.inOut' }, 0.2)
+      .add(() => page.intro && page.intro(), 0.45);
     loader.remove();
     lock(false);
     ScrollTrigger.refresh();

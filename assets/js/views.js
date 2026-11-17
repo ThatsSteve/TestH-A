@@ -346,6 +346,10 @@
     return out;
   }
 
+  // Images shown in the viewer: the gallery, plus the cover if it is not part of it
+  const lightboxItems = p => (p.gallery.some(g => g.src === p.cover.src) ? p.gallery : [p.cover].concat(p.gallery));
+  const lbIndex = (p, im) => Math.max(0, lightboxItems(p).findIndex(g => g.src === im.src));
+
   function splitLead(desc) {
     let [lead, ...body] = desc;
     if (lead && lead.length > 200) {
@@ -375,7 +379,7 @@
       </header>
 
       <div class="proj__top wrap">
-        <figure class="proj__cover frame" style="--nw:${p.cover.w}px;--ar:${(p.cover.w / p.cover.h).toFixed(3)}">${pic(p.cover, SZ.cover, p.title, { eager: true })}</figure>
+        <figure class="proj__cover frame" style="--nw:${p.cover.w}px;--ar:${(p.cover.w / p.cover.h).toFixed(3)}"><button type="button" class="gitem__btn" data-lb="${lbIndex(p, p.cover)}" aria-label="Enlarge image ${lbIndex(p, p.cover) + 1} of ${lightboxItems(p).length}">${pic(p.cover, SZ.cover, p.title, { eager: true })}</button></figure>
         <dl class="facts">${facts.map(k => `<div class="facts__row"><dt>${FACT_LABELS[k]}</dt><dd>${esc(p.facts[k])}</dd></div>`).join('')}</dl>
       </div>
 
@@ -399,8 +403,8 @@
 
       <section class="gallery wrap" aria-label="Project images">
         ${layoutGallery(gal).map(({ k, item }) => {
-          const n = p.gallery.indexOf(item);
-          return `<figure class="gitem gitem--${k}" style="--nw:${item.w}px;--ar:${(item.w / item.h).toFixed(3)}"><button type="button" class="gitem__btn" data-i="${n}" aria-label="Enlarge image ${n + 1} of ${p.gallery.length}">${pic(item, sizeFor(k), `${p.title}, image ${n + 1}`)}</button></figure>`;
+          const n = lbIndex(p, item);
+          return `<figure class="gitem gitem--${k}" style="--nw:${item.w}px;--ar:${(item.w / item.h).toFixed(3)}"><button type="button" class="gitem__btn" data-lb="${n}" aria-label="Enlarge image ${n + 1} of ${lightboxItems(p).length}">${pic(item, sizeFor(k), `${p.title}, image ${n + 1}`)}</button></figure>`;
         }).join('')}
       </section>
 
@@ -560,7 +564,7 @@
   }
 
   return {
-    SITE_URL, BASE, link, U, esc, pad, words, chars, pic, smallUrl, logoSVG, markSVG, header, footer, render, match, allPaths,
+    SITE_URL, BASE, link, U, lightboxItems, esc, pad, words, chars, pic, smallUrl, logoSVG, markSVG, header, footer, render, match, allPaths,
     data: { P, featured, projBySlug, areaBySlug, areaById, inArea, loc, country, COUNTRIES },
   };
 });

@@ -19,9 +19,8 @@ const BASE = rawBase ? '/' + rawBase : '';
 const V = require('./assets/js/views.js')(D, L, BASE);
 
 // Cache-busting version from the asset contents
-const assets = ['assets/css/style.css', 'assets/js/data.js', 'assets/js/logo.js', 'assets/js/views.js', 'assets/js/hero-gl.js', 'assets/js/map.js', 'assets/js/app.js'];
+const assets = ['assets/css/style.css', 'assets/js/data.js', 'assets/js/logo.js', 'assets/js/views.js', 'assets/js/hero-gl.js', 'assets/js/lightbox.js', 'assets/js/map.js', 'assets/js/app.js'];
 const ver = crypto.createHash('md5').update(assets.map(a => fs.readFileSync(path.join(ROOT, a))).join('')).digest('hex').slice(0, 8);
-const arrow = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg>';
 
 function page(r) {
   const m = r.meta;
@@ -61,13 +60,6 @@ ${V.header()}
 ${r.html}
 </main>
 ${V.footer()}
-<div class="lightbox" role="dialog" aria-modal="true" aria-label="Project images" hidden>
-  <div class="lightbox__stage"><img alt=""></div>
-  <button class="lightbox__close" type="button">Close</button>
-  <button class="lightbox__prev" type="button" aria-label="Previous image">${arrow}</button>
-  <button class="lightbox__next" type="button" aria-label="Next image">${arrow}</button>
-  <div class="lightbox__count" aria-live="polite"></div>
-</div>
 <div class="curtain" aria-hidden="true"><div class="curtain__mark">${V.markSVG()}</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
@@ -75,6 +67,7 @@ ${V.footer()}
 <script src="${BASE}/assets/js/data.js?v=${ver}" defer></script>
 <script src="${BASE}/assets/js/logo.js?v=${ver}" defer></script>
 <script src="${BASE}/assets/js/views.js?v=${ver}" defer></script>
+<script src="${BASE}/assets/js/lightbox.js?v=${ver}" defer></script>
 <script src="${BASE}/assets/js/hero-gl.js?v=${ver}" defer></script>
 <script src="${BASE}/assets/js/map.js?v=${ver}" defer></script>
 <script src="${BASE}/assets/js/app.js?v=${ver}" defer></script>
