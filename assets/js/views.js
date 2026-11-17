@@ -42,6 +42,7 @@
     project: slug => `/projects/${slug}/`,
     firm: '/the-firm/',
     people: '/people/',
+    contacts: '/contacts/',
     area: a => (a.parent ? `/area/${areaById[a.parent].slug}/${a.slug}/` : `/area/${a.slug}/`),
   };
 
@@ -105,7 +106,7 @@
     <div class="menu" id="menu" hidden>
       <div class="menu__inner wrap">
         <nav class="menu__main" aria-label="Menu">
-          ${[[U.projects, 'Projects'], [U.firm, 'The Firm'], [U.people, 'People'], ['#contacts', 'Contacts']].map(([h, t]) => `<span class="ln"><a class="ln__in" href="${h}">${t}</a></span>`).join('')}
+          ${[[U.projects, 'Projects'], [U.firm, 'The Firm'], [U.people, 'People'], [U.contacts, 'Contacts']].map(([h, t]) => `<span class="ln"><a class="ln__in" href="${h}">${t}</a></span>`).join('')}
         </nav>
         <div class="menu__areas">
           ${tops.map(a => `<div class="menu__group"><p class="menu__h"><a href="${U.area(a)}">${esc(a.name)}<sup>${countIn(a.slug)}</sup></a></p>${childrenOf(a.id).filter(c => countIn(c.slug)).map(c => `<a href="${U.area(c)}">${esc(c.name)}</a>`).join('')}</div>`).join('')}
@@ -576,14 +577,56 @@
       <ul class="team">
         ${g.members.map((m, i) => `
         <li class="member" data-r="up">
-          <span class="member__ph">${photo(m, '(max-width: 560px) 46vw, (max-width: 1100px) 24vw, 18vw')}</span>
-          <h3 class="member__name">${esc(m.name)}</h3>
-          <p class="member__role">${esc(m.role)}</p>
-          ${m.bio.length ? `<button class="member__more" type="button" aria-expanded="false" aria-controls="mb-${gi}-${i}"><span>Profile</span><span class="plus" aria-hidden="true"></span></button>
-          <div class="member__bio" id="mb-${gi}-${i}" hidden>${m.bio.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : ''}
+          ${m.bio.length ? `<button class="member__open" type="button" data-person="${gi + 1}-${i}" aria-label="Open the profile of ${esc(m.name)}">` : '<div class="member__open is-static">'}
+            <span class="member__ph">${photo(m, '(max-width: 560px) 46vw, (max-width: 1100px) 24vw, 18vw')}</span>
+            <span class="member__name">${esc(m.name)}</span>
+            <span class="member__role">${esc(m.role)}</span>
+            ${m.bio.length ? `<span class="member__more">Profile${arrowSVG}</span>` : ''}
+          ${m.bio.length ? '</button>' : '</div>'}
+          ${m.bio.length ? `<div class="member__bio" hidden>${m.bio.map(t => `<p>${esc(t)}</p>`).join('')}</div>` : ''}
         </li>`).join('')}
       </ul>
     </section>`).join('')}`;
+  }
+
+  // Offices on the map: city-level positions (Marghera for Venice, Rome, Xuhui for Shanghai)
+  const OFFICE_GEO = { Venice: [45.4620, 12.2400], Rome: [41.8560, 12.4820], Shanghai: [31.1990, 121.4370] };
+  const TZ = { Venice: 'Europe/Rome', Rome: 'Europe/Rome', Shanghai: 'Asia/Shanghai' };
+
+  function viewContacts() {
+    const s = D.site;
+    const mapsUrl = o => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.lines.join(', '))}`;
+    return `
+    <section class="phead wrap">
+      <h1 class="phead__title">${words('Contacts')}</h1>
+    </section>
+    <section class="ct wrap" aria-label="Contacts">
+      <div class="ct__main">
+        <a class="ct__mail" href="mailto:${s.contacts.mail}">${esc(s.contacts.mail)}</a>
+        <a class="ct__tel" href="${s.contacts.telHref}">${esc(s.contacts.tel)}</a>
+      </div>
+      <div class="ct__side">
+        <p>H&amp;A Associati<br>${esc(s.contacts.address)}</p>
+        <ul class="ct__social">${s.social.map(x => `<li><a href="${x.href}" target="_blank" rel="noopener">${esc(x.name)}</a></li>`).join('')}</ul>
+      </div>
+    </section>
+    <section class="ct-off wrap" aria-labelledby="h-off">
+      <h2 class="sec__title" id="h-off" data-r="words">${words('Offices')}</h2>
+      <div class="ct-off__grid">
+        <div class="ct-map" data-officemap aria-label="Map of the offices"><div class="pmap__note">Loading map</div></div>
+        <ul class="ct-off__list">
+          ${s.offices.map((o, i) => `
+          <li class="ct-office${i === 0 ? ' is-active' : ''}">
+            <button type="button" class="ct-office__btn" data-office="${i}" aria-pressed="${i === 0}">
+              <span class="ct-office__city">${esc(o.city)}</span>
+              <span class="ct-office__time caps" data-tz="${TZ[o.city] || 'Europe/Rome'}">&nbsp;</span>
+            </button>
+            <p class="ct-office__addr">${o.lines.map(esc).join('<br>')}${o.tel ? `<br><a href="${o.telHref}">${esc(o.tel)}</a>` : ''}</p>
+            <a class="ct-office__maps cta" href="${mapsUrl(o)}" target="_blank" rel="noopener"><span>Open in Google Maps</span>${arrowSVG}</a>
+          </li>`).join('')}
+        </ul>
+      </div>
+    </section>`;
   }
 
   function viewNotFound() {
@@ -600,6 +643,7 @@
     if (parts[0] === 'area' && areaBySlug[parts[parts.length - 1]]) return { name: 'projects', area: parts[parts.length - 1] };
     if (parts[0] === 'the-firm') return { name: 'firm' };
     if (parts[0] === 'people') return { name: 'people' };
+    if (parts[0] === 'contacts') return { name: 'contacts' };
     return { name: '404' };
   }
 
@@ -635,19 +679,22 @@
         return { ...base, html: withBase(viewFirm()), meta: { title: 'The Firm | H&A Associati', description: (lines(D.firm.intro[0] || [])[0] || '').slice(0, 158), path: U.firm, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['The Firm', U.firm]])] } };
       case 'people':
         return { ...base, html: withBase(viewPeople()), meta: { title: 'People | H&A Associati', description: `Partners and project team of H&A Associati: ${D.people[0].members.map(m => m.name).join(', ')} and over thirty architects and engineers.`.slice(0, 158), path: U.people, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['People', U.people]])] } };
+      case 'contacts':
+        return { ...base, html: withBase(viewContacts()), meta: { title: 'Contacts | H&A Associati', description: `Contact H&A Associati: ${D.site.contacts.mail}, ${D.site.contacts.tel}. Offices in ${D.site.offices.map(o => o.city).join(', ')}.`.slice(0, 158), path: U.contacts, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['Contacts', U.contacts]])] } };
       default:
         return { ...base, html: withBase(viewNotFound()), meta: { title: 'Page not found | H&A Associati', description: D.site.description, path: '/404.html', image: featured[0].cover.src, noindex: true, jsonld: [] } };
     }
   }
 
   function allPaths() {
-    return ['/', U.projects, U.firm, U.people]
+    return ['/', U.projects, U.firm, U.people, U.contacts]
       .concat(D.areas.filter(a => countIn(a.slug)).map(U.area))
       .concat(P.map(p => U.project(p.slug)));
   }
 
   return {
     SITE_URL, BASE, link, U, lightboxItems, esc, pad, words, chars, pic, smallUrl, logoSVG, markSVG, header, footer, render, match, allPaths,
+    OFFICE_GEO,
     data: { P, featured, projBySlug, areaBySlug, areaById, inArea, loc, country, COUNTRIES },
   };
 });

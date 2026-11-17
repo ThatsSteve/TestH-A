@@ -267,6 +267,49 @@
     return { init, destroy() { io && io.disconnect(); map && map.remove(); map = null; } };
   }
 
+  /* ------------------------------------------------------- offices */
+  // Contacts page: one marker per office; choosing an office flies the camera there
+  function officesMap(el, offices, geo) {
+    let map = null, current = 0;
+    const markers = [];
+    const api = {
+      init() {
+        return load().then(() => {
+          el.innerHTML = '';
+          map = new maplibregl.Map(baseOptions(el, { center: [60, 38], zoom: 1.4 }));
+          map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+          map.on('load', () => {
+            brand(map);
+            offices.forEach((o, i) => {
+              const g = geo[o.city];
+              if (!g) return;
+              const m = document.createElement('button');
+              m.type = 'button';
+              m.className = 'mk mk--main mk--office';
+              m.setAttribute('aria-label', o.city);
+              m.innerHTML = `<span class="mk__label">${o.city}</span>`;
+              m.addEventListener('click', () => api.select(i));
+              markers[i] = new maplibregl.Marker({ element: m, anchor: 'left', offset: [-9, 0] }).setLngLat(lngLat(g)).addTo(map);
+            });
+            api.select(current, true);
+          });
+          return map;
+        }).catch(() => { el.innerHTML = '<div class="pmap__note">The map could not be loaded.</div>'; });
+      },
+      select(i, first) {
+        current = i;
+        if (api.onSelect) api.onSelect(i);
+        const g = geo[offices[i] && offices[i].city];
+        if (!map || !g) return;
+        markers.forEach((m, k) => m && m.getElement().classList.toggle('is-hot', k === i));
+        const t = { center: lngLat(g), zoom: 11.2, pitch: 45, bearing: -12, essential: true };
+        if (reduced) map.jumpTo(t); else map.flyTo(Object.assign(t, { duration: first ? 3800 : 3000, curve: 1.5 }));
+      },
+      destroy() { map && map.remove(); map = null; },
+    };
+    return api;
+  }
+
   // Start a map only once it is about to scroll into view
   function whenNear(el, fn) {
     if (!('IntersectionObserver' in window)) { fn(); return () => {}; }
@@ -275,5 +318,5 @@
     return () => io.disconnect();
   }
 
-  window.HA_MAP = { load, projectsMap, locationMap, whenNear, NAVY };
+  window.HA_MAP = { load, projectsMap, locationMap, officesMap, whenNear, NAVY };
 })();

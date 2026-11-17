@@ -289,6 +289,14 @@
       .to(intro, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.08 }, 0)
       .add(progress, 0.6);
 
+    // Project list: each image opens out from a slightly inset frame as it scrolls into view
+    // (clip only, never a zoom, so the photos stay sharp)
+    const mmEd = gsap.matchMedia();
+    page.cleanup.push(() => mmEd.revert());
+    mmEd.add('(min-width: 861px)', () => {
+      $$('.ed__img').forEach(el => gsap.fromTo(el, { clipPath: 'inset(8% 8% 8% 8%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', scrollTrigger: { trigger: el, start: 'top 95%', end: 'top 40%', scrub: 0.5 } }));
+    });
+
     // Figures count up once
     $$('.fig__n[data-count]').forEach(el => {
       const n = +el.dataset.count, o = { v: 0 }, t = el.firstChild;
@@ -586,15 +594,121 @@
     page.cleanup.push(() => removeEventListener('resize', onResize));
   }
 
+  /* ----------------------------------------------- person profile view */
+  // Project team: each person opens in a dedicated full-screen profile, with Back and next/previous
+  const Person = (() => {
+    let el = null, list = [], idx = 0, isOpen = false, pushed = false, lastFocus = null;
+    function build() {
+      el = document.createElement('div');
+      el.className = 'pview';
+      el.hidden = true;
+      el.setAttribute('role', 'dialog');
+      el.setAttribute('aria-modal', 'true');
+      el.setAttribute('data-lenis-prevent', '');
+      el.innerHTML = `
+        <div class="pview__bar wrap">
+          <button type="button" class="pview__back cta"><span>Back to People</span>${'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg>'}</button>
+          <div class="pview__nav">
+            <span class="pview__count"></span>
+            <button type="button" class="car__btn pview__prev" aria-label="Previous person"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></button>
+            <button type="button" class="car__btn pview__next" aria-label="Next person"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></button>
+          </div>
+        </div>
+        <div class="pview__body wrap">
+          <figure class="pview__ph"><img alt=""></figure>
+          <div class="pview__txt">
+            <p class="pview__role"></p>
+            <h2 class="pview__name"></h2>
+            <div class="pview__bio"></div>
+          </div>
+        </div>`;
+      document.body.appendChild(el);
+      $('.pview__back', el).addEventListener('click', () => close());
+      $('.pview__prev', el).addEventListener('click', () => show(idx - 1, -1));
+      $('.pview__next', el).addEventListener('click', () => show(idx + 1, 1));
+      addEventListener('keydown', e => {
+        if (!isOpen) return;
+        if (e.key === 'Escape') close();
+        if (e.key === 'ArrowRight') show(idx + 1, 1);
+        if (e.key === 'ArrowLeft') show(idx - 1, -1);
+      });
+    }
+    function fill() {
+      const m = list[idx];
+      const im = $('.pview__ph img', el);
+      im.src = m.photo || '';
+      im.alt = m.name;
+      $('.pview__ph', el).classList.toggle('is-empty', !m.photo);
+      $('.pview__role', el).textContent = m.role;
+      $('.pview__name', el).textContent = m.name;
+      $('.pview__bio', el).innerHTML = m.bio.map(t => `<p>${V.esc(t)}</p>`).join('');
+      $('.pview__count', el).textContent = `${pad(idx + 1)} / ${pad(list.length)}`;
+      el.scrollTop = 0;
+    }
+    function show(i, dir) {
+      idx = (i + list.length) % list.length;
+      if (!ANIM) { fill(); return; }
+      const parts = [$('.pview__ph', el), $('.pview__txt', el)];
+      gsap.timeline()
+        .to(parts, { opacity: 0, x: -16 * (dir || 1), duration: 0.2, ease: 'power1.in' })
+        .add(fill)
+        .fromTo(parts, { opacity: 0, x: 16 * (dir || 1) }, { opacity: 1, x: 0, duration: 0.45, ease: 'power2.out', stagger: 0.05 });
+    }
+    function open(people, i) {
+      if (!el) build();
+      list = people; idx = i; lastFocus = document.activeElement;
+      fill();
+      el.hidden = false; isOpen = true; lock(true);
+      try { history.pushState(Object.assign({}, history.state, { person: 1 }), '', location.href); pushed = true; } catch (e) { pushed = false; }
+      if (ANIM) {
+        gsap.timeline()
+          .fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power1.out' })
+          .fromTo([$('.pview__ph', el), $('.pview__txt', el)], { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out', stagger: 0.07 }, 0.1);
+      }
+      $('.pview__back', el).focus({ preventScroll: true });
+    }
+    function close(fromHistory) {
+      if (!isOpen) return;
+      if (pushed && !fromHistory) { pushed = false; history.back(); return; }
+      pushed = false; isOpen = false;
+      const done = () => { el.hidden = true; lock(false); lastFocus && lastFocus.focus({ preventScroll: true }); };
+      if (ANIM) gsap.to(el, { opacity: 0, duration: 0.25, ease: 'power1.in', onComplete: done }); else done();
+    }
+    return { open, close, handlePop() { if (!isOpen) return false; close(true); return true; }, get isOpen() { return isOpen; } };
+  })();
+
   function initPeople() {
     initPartners();
-    $$('.member').forEach(m => {
-      const b = $('.member__more', m), bio = $('.member__bio', m);
-      if (!b) return;
-      b.addEventListener('click', () => { const o = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', o); bio.hidden = !o; m.classList.toggle('is-open', o); window.ScrollTrigger && ScrollTrigger.refresh(); });
-    });
+    $$('[data-person]').forEach(b => b.addEventListener('click', () => {
+      const [g, i] = b.dataset.person.split('-').map(Number);
+      const people = window.HA_DATA.people[g].members.filter(m => m.bio.length);
+      const m = window.HA_DATA.people[g].members[i];
+      Person.open(people, people.indexOf(m));
+    }));
+    page.cleanup.push(() => { if (Person.isOpen) Person.close(true); });
     introTitle();
   }
+
+  /* --------------------------------------------------------- contacts */
+  function initContacts() {
+    const clocks = $$('.ct-office__time');
+    const tick = () => clocks.forEach(c => {
+      try { c.textContent = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: c.dataset.tz }).format(new Date()) + ' local time'; } catch (e) { c.textContent = ''; }
+    });
+    tick(); const clk = setInterval(tick, 20000); page.cleanup.push(() => clearInterval(clk));
+    const btns = $$('.ct-office__btn');
+    const mark = i => btns.forEach((b, k) => { b.setAttribute('aria-pressed', k === i); b.closest('.ct-office').classList.toggle('is-active', k === i); });
+    const el = $('[data-officemap]');
+    let api = null;
+    if (el && M) {
+      api = M.officesMap(el, D_OFFICES(), V.OFFICE_GEO);
+      api.onSelect = mark;
+      page.cleanup.push(M.whenNear(el, () => api.init()), () => api.destroy());
+    }
+    btns.forEach((b, i) => b.addEventListener('click', () => { mark(i); api && api.select(i); }));
+    introTitle();
+  }
+  const D_OFFICES = () => window.HA_DATA.site.offices;
 
   /* ============================================================ ROUTER */
   function setMeta(meta) {
@@ -628,7 +742,7 @@
     if (r.name === 'project' && projBySlug[r.route.slug]) tops = projBySlug[r.route.slug].areas.map(id => areaById[id]).filter(a => a && !a.parent).map(a => a.slug);
     navActive(tops, r.name === 'projects' ? r.route.area : null);
     scrollTop();
-    const init = { home: initHome, projects: () => initProjects(r.route), project: () => initProject(r.route), firm: initFirm, people: initPeople }[r.name] || introTitle;
+    const init = { home: initHome, projects: () => initProjects(r.route), project: () => initProject(r.route), firm: initFirm, people: initPeople, contacts: initContacts }[r.name] || introTitle;
     fitTitles(main);
     const run = () => { init(); initImageGroups(main); reveals(main); };
     if (window.gsap) page.ctx = gsap.context(run); else run();
@@ -640,10 +754,13 @@
     if (busy) { queued = pathname; return; }
     busy = true;
     if (push) history.pushState({ path: pathname }, '', pathname);
-    // Areas (Architecture, Engineering, ...) open with a quick fade, never with the blue curtain
-    if (V.match(pathname).name === 'projects') {
+    // The blue curtain is kept for one journey only: from the home page to a main section
+    // (Projects, The Firm, People, Contacts). Every other change is a quick, quiet fade.
+    const target = V.match(pathname);
+    const mainSection = ['firm', 'people', 'contacts'].includes(target.name) || (target.name === 'projects' && !target.area);
+    if (!(page.name === 'home' && mainSection)) {
       page.closeMenu && page.closeMenu(true);
-      if (ANIM && page.name !== 'projects') await gsap.to(main, { opacity: 0, duration: 0.22, ease: 'power1.out' });
+      if (ANIM) await gsap.to(main, { opacity: 0, duration: 0.22, ease: 'power1.out' });
       render(pathname);
       if (ANIM) gsap.fromTo(main, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'power1.out', clearProps: 'opacity' });
       page.intro && page.intro();
@@ -711,6 +828,7 @@
     addEventListener('popstate', () => {
       // The phone's back button closes the image viewer instead of leaving the page
       if (window.HA_LIGHTBOX && window.HA_LIGHTBOX.handlePop()) return;
+      if (Person.handlePop()) return;
       if (page.route && location.pathname === page.path) return;
       go(location.pathname, false);
     });

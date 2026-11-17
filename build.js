@@ -90,7 +90,7 @@ function write(rel, content) {
 }
 
 // Remove previously generated route folders so deleted projects do not linger
-for (const dir of ['projects', 'area', 'the-firm', 'people']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
+for (const dir of ['projects', 'area', 'the-firm', 'people', 'contacts']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
 
 const paths = V.allPaths();
 const relFor = p => '../'.repeat(p.split('/').filter(Boolean).length) || './';
