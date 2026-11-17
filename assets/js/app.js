@@ -80,10 +80,10 @@
   function reveals(scope) {
     if (!ANIM) return;
     const once = (el, fn, start = 'top 88%') => ScrollTrigger.create({ trigger: el, start, once: true, onEnter: fn });
+    // Headings: one calm fade for the whole line (no word-by-word effect: lighter and quieter)
     $$('[data-r="words"]', scope).forEach(el => {
-      const ins = $$('.wm__in', el);
-      gsap.set(ins, { yPercent: 110 });
-      once(el, () => gsap.to(ins, { yPercent: 0, duration: 0.8, ease: 'power3.out', stagger: 0.02 }));
+      gsap.set(el, { opacity: 0, y: 12 });
+      once(el, () => gsap.to(el, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }));
     });
     $$('[data-r="up"]', scope).forEach(el => {
       gsap.set(el, { opacity: 0, y: 16 });
@@ -440,14 +440,13 @@
     apply(false);
 
     if (!ANIM) return;
-    const ins = $$('.wm__in', titleEl);
-    gsap.set(ins, { yPercent: 110 });
     titleEl.removeAttribute('data-r');
     const items = (view === 'list' ? rows : gridItems).filter(el => !el.classList.contains('is-out')).slice(0, 9);
-    gsap.set(items, { opacity: 0, y: 30 });
+    gsap.set([titleEl, '.ptools'], { opacity: 0, y: 12 });
+    gsap.set(items, { opacity: 0, y: 16 });
     page.intro = () => gsap.timeline()
-      .to($$('.wm__in', titleEl), { yPercent: 0, duration: 1.1, ease: 'expo.out' }, 0)
-      .to(items, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.05 }, 0.2);
+      .to([titleEl, '.ptools'], { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out', stagger: 0.06 }, 0)
+      .to(items, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.04 }, 0.15);
   }
 
   /* ----------------------------------------------------------- project */
@@ -475,23 +474,18 @@
 
     if (!ANIM) return;
     const t = $('.proj__title');
-    gsap.set($$('.wm__in', t), { yPercent: 110 });
-    gsap.set($$('.proj__loc .ln__in'), { yPercent: 110 });
-    gsap.set('.proj__cover', { opacity: 0, y: 28 });
-    gsap.set($$('.facts__row'), { opacity: 0, y: 16 });
-    page.intro = () => gsap.timeline()
-      .to($$('.wm__in', t), { yPercent: 0, duration: 1.2, ease: 'expo.out', stagger: 0.05 }, 0)
-      .to($$('.proj__loc .ln__in'), { yPercent: 0, duration: 1, ease: 'expo.out' }, 0.25)
-      .to('.proj__cover', { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' }, 0.2)
-      .to($$('.facts__row'), { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.06 }, 0.7);
+    // Opening: title, place, image and facts fade up together, quickly
+    const parts = [t, '.proj__loc', '.proj__cover', '.facts'];
+    gsap.set(parts, { opacity: 0, y: 14 });
+    page.intro = () => gsap.to(parts, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.07 });
   }
 
   /* -------------------------------------------------------- firm/people */
   function introTitle() {
     const t = $('.phead__title');
     if (!ANIM || !t) return;
-    gsap.set($$('.wm__in', t), { yPercent: 110 });
-    page.intro = () => gsap.to($$('.wm__in', t), { yPercent: 0, duration: 1.2, ease: 'expo.out', stagger: 0.06 });
+    gsap.set(t, { opacity: 0, y: 14 });
+    page.intro = () => gsap.to(t, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' });
   }
   function initFirm() {
     const im = $('.firm__hero img');
@@ -551,8 +545,8 @@
     mm.add('(max-width: 860px), (max-height: 559px)', () => { root.classList.add('is-native'); onScroll(); return () => root.classList.remove('is-native'); });
 
     // Entrance: the wall slides in once
-    gsap.set(items, { opacity: 0, x: 80 });
-    ScrollTrigger.create({ trigger: root, start: 'top 80%', once: true, onEnter: () => gsap.to(items, { opacity: 1, x: 0, duration: 1.2, ease: 'expo.out', stagger: 0.08, clearProps: 'x' }) });
+    gsap.set(items.slice(0, 4), { opacity: 0, x: 24 });
+    ScrollTrigger.create({ trigger: root, start: 'top 80%', once: true, onEnter: () => gsap.to(items.slice(0, 4), { opacity: 1, x: 0, duration: 0.7, ease: 'power2.out', stagger: 0.06, clearProps: 'x' }) });
   }
 
   /* ------------------------------------------------------- partners */

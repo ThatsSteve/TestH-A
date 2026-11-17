@@ -108,7 +108,7 @@
           ${[[U.projects, 'Projects'], [U.firm, 'The Firm'], [U.people, 'People'], ['#contacts', 'Contacts']].map(([h, t]) => `<span class="ln"><a class="ln__in" href="${h}">${t}</a></span>`).join('')}
         </nav>
         <div class="menu__areas">
-          ${tops.map(a => `<div><p class="menu__h"><a href="${U.area(a)}">${esc(a.name)}</a></p>${childrenOf(a.id).filter(c => countIn(c.slug)).map(c => `<a href="${U.area(c)}">${esc(c.name)}</a>`).join('')}</div>`).join('')}
+          ${tops.map(a => `<div class="menu__group"><p class="menu__h"><a href="${U.area(a)}">${esc(a.name)}<sup>${countIn(a.slug)}</sup></a></p>${childrenOf(a.id).filter(c => countIn(c.slug)).map(c => `<a href="${U.area(c)}">${esc(c.name)}</a>`).join('')}</div>`).join('')}
         </div>
         <div class="menu__foot">
           <a href="mailto:${D.site.contacts.mail}">${esc(D.site.contacts.mail)}</a>
@@ -211,11 +211,8 @@
     return `
     <nav class="areas-m wrap" aria-label="Areas">
       <ul>
-        ${tops.map((a, i) => {
-          const p = P.find(q => inArea(q, a.slug));
+        ${tops.map(a => {
           return `<li><a class="areas-m__a" href="${U.area(a)}">
-            <span class="areas-m__img">${p ? pic({ src: smallUrl(p.cover, 300), w: 300, h: 200 }, '72px', '') : ''}</span>
-            <span class="areas-m__n">${pad(i + 1)}</span>
             <span class="areas-m__t">${esc(a.name)}</span>
             <span class="areas-m__c">${countIn(a.slug)}</span>
             <span class="areas-m__arr">${arrowSVG}</span>
