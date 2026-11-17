@@ -101,9 +101,6 @@
         </nav>
         <button class="header__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span class="header__burger-l">Menu</span><span class="header__burger-i"><span></span><span></span></span></button>
       </div>
-      <nav class="header__strip" aria-label="Areas">
-        ${tops.map(a => `<a href="${U.area(a)}" data-top="${a.slug}">${esc(a.name)}</a>`).join('')}
-      </nav>
     </header>
     <div class="menu" id="menu" hidden>
       <div class="menu__inner wrap">
@@ -212,18 +209,31 @@
     const join = arr => arr.join(', ').replace(/, ([^,]*)$/, ' and $1');
 
     return `
-    <section class="intro wrap" aria-label="H&amp;A Associati">
-      <h1 class="intro__text">${words(D.site.description)}</h1>
-      <div class="intro__row">
-        <div class="intro__cta">${cta(U.firm, 'The Firm')}</div>
-        ${intro[1] ? `<p class="intro__p">${esc(intro[1])}</p>` : ''}
-      </div>
-    </section>
+    <nav class="areas-m wrap" aria-label="Areas">
+      <ul>
+        ${tops.map((a, i) => {
+          const p = P.find(q => inArea(q, a.slug));
+          return `<li><a class="areas-m__a" href="${U.area(a)}">
+            <span class="areas-m__img">${p ? pic({ src: smallUrl(p.cover, 300), w: 300, h: 200 }, '72px', '') : ''}</span>
+            <span class="areas-m__n">${pad(i + 1)}</span>
+            <span class="areas-m__t">${esc(a.name)}</span>
+            <span class="areas-m__c">${countIn(a.slug)}</span>
+            <span class="areas-m__arr">${arrowSVG}</span>
+          </a></li>`;
+        }).join('')}
+      </ul>
+    </nav>
 
-    <section class="hero wrap" aria-label="Featured projects">
-      <div class="hero__frame">
-        <canvas class="hero__canvas" aria-hidden="true"></canvas>
-        <div class="hero__imgs">${f.map((p, i) => pic(p.cover, SZ.cover, p.title, { eager: i === 0, cls: i === 0 ? 'is-on' : '' })).join('')}</div>
+    <section class="hero wrap" aria-labelledby="h-feat">
+      <div class="hero__head">
+        <h2 class="sec__title" id="h-feat">${words('Featured projects')}</h2>
+        <span class="hero__count"><b>01</b> / ${pad(f.length)}</span>
+      </div>
+      <div class="hero__stage">
+        <div class="hero__frame">
+          <canvas class="hero__canvas" aria-hidden="true"></canvas>
+          <div class="hero__imgs">${f.map((p, i) => pic(p.cover, SZ.cover, p.title, { eager: i === 0, cls: i === 0 ? 'is-on' : '' })).join('')}</div>
+        </div>
       </div>
       <div class="hero__info">
         <div class="hero__text">
@@ -233,7 +243,6 @@
         <div class="hero__side">
           <a class="hero__open cta" href="${U.project(f[0].slug)}"><span>View project</span>${arrowSVG}</a>
           <div class="hero__nav">
-            <span class="hero__count"><b>01</b> / ${pad(f.length)}</span>
             <button class="car__btn hero__prev" type="button" aria-label="Previous project">${arrowSVG}</button>
             <button class="car__btn hero__next" type="button" aria-label="Next project">${arrowSVG}</button>
           </div>
@@ -242,6 +251,16 @@
       <ol class="hero__steps">
         ${f.map((p, i) => `<li><button type="button" class="hero__step${i === 0 ? ' is-active' : ''}" aria-label="${esc(p.title)}"><i><b></b></i><span>${pad(i + 1)}</span><em>${esc(p.title)}</em></button></li>`).join('')}
       </ol>
+    </section>
+
+    <section class="intro wrap" aria-label="H&amp;A Associati">
+      <div class="intro__inner">
+        <h1 class="intro__text" data-r="words">${words(D.site.description)}</h1>
+        <div class="intro__row">
+          ${intro[1] ? `<p class="intro__p" data-r="up">${esc(intro[1])}</p>` : ''}
+          <div class="intro__cta" data-r="up">${cta(U.firm, 'The Firm')}</div>
+        </div>
+      </div>
     </section>
 
     <section class="areas wrap" aria-labelledby="h-areas">

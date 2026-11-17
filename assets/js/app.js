@@ -100,7 +100,7 @@
   function initMenu() {
     const burger = $('.header__burger'), menu = $('#menu');
     let open = false, tl = null;
-    const set = v => {
+    const set = (v, instant) => {
       open = v;
       burger.setAttribute('aria-expanded', v);
       burger.setAttribute('aria-label', v ? 'Close menu' : 'Open menu');
@@ -108,8 +108,12 @@
       header.classList.remove('is-hidden');
       lock(v);
       tl && tl.kill();
-      if (v) menu.hidden = false;
-      if (!ANIM) { if (!v) menu.hidden = true; return; }
+      if (v) { menu.hidden = false; menu.scrollTop = 0; }
+      // Leaving for another page: close at once, so nothing shows through the transition
+      if (!ANIM || (!v && instant)) {
+        if (!v) { menu.hidden = true; if (window.gsap) gsap.set(menu, { clearProps: 'clipPath' }); }
+        return;
+      }
       if (v) {
         tl = gsap.timeline()
           .fromTo(menu, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.8, ease: 'expo.inOut' })
@@ -120,9 +124,14 @@
       }
     };
     burger.addEventListener('click', () => set(!open));
-    menu.addEventListener('click', e => { if (e.target.closest('a')) set(false); });
+    menu.addEventListener('click', e => {
+      const a = e.target.closest('a');
+      if (!a) return;
+      // contacts scroll on the same page: close with the animation; other links leave the page: close at once
+      set(false, a.getAttribute('href') !== '#contacts');
+    });
     addEventListener('keydown', e => { if (e.key === 'Escape' && open) { set(false); burger.focus(); } });
-    page.closeMenu = () => open && set(false);
+    page.closeMenu = instant => open && set(false, instant);
   }
 
   /* ============================================================= PAGES */
@@ -275,19 +284,19 @@
 
     gsap.set($$('.ch', titleA), { yPercent: 110 });
     gsap.set(locEl, { yPercent: 110 });
-    // Opening: the studio statement first, then the featured projects beneath it
-    const introWords = $$('.intro__text .wm__in');
-    gsap.set(introWords, { yPercent: 110 });
-    gsap.set(['.intro__row', '.hero__side', '.hero__steps'], { opacity: 0, y: 16 });
-    gsap.set(frame, { opacity: 0, y: 32 });
+    // Opening: "Featured projects", the frame, then the project title
+    const headWords = $$('.hero__head .wm__in');
+    gsap.set(headWords, { yPercent: 110 });
+    gsap.set(['.hero__count', '.hero__side', '.hero__steps'], { opacity: 0, y: 16 });
+    gsap.set('.hero__stage', { opacity: 0, y: 32 });
     page.intro = () => gsap.timeline()
-      .to(introWords, { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.025 }, 0)
-      .to('.intro__row', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, 0.6)
-      .to(frame, { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' }, 0.7)
-      .to($$('.ch', titleA), { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.022 }, 1.1)
-      .to(locEl, { yPercent: 0, duration: 1, ease: 'expo.out' }, 1.4)
-      .to(['.hero__side', '.hero__steps'], { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.08 }, 1.4)
-      .add(progress, 1.6);
+      .to(headWords, { yPercent: 0, duration: 1.2, ease: 'expo.out', stagger: 0.06 }, 0)
+      .to('.hero__count', { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 0.3)
+      .to('.hero__stage', { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' }, 0.3)
+      .to($$('.ch', titleA), { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.022 }, 0.8)
+      .to(locEl, { yPercent: 0, duration: 1, ease: 'expo.out' }, 1.1)
+      .to(['.hero__side', '.hero__steps'], { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.08 }, 1.1)
+      .add(progress, 1.3);
 
     // Figures count up once
     $$('.fig__n[data-count]').forEach(el => {
@@ -559,8 +568,8 @@
   // One photo per partner: it grows into place when the profile opens
   function initPartners() {
     const sizes = () => (innerWidth <= 860
-      ? { closed: 56, open: Math.round(Math.min(180, Math.max(110, innerWidth * 0.4))) }
-      : { closed: Math.round(Math.min(96, Math.max(64, innerWidth * 0.06))), open: Math.round(Math.min(420, Math.max(220, innerWidth * 0.26))) });
+      ? { closed: 56, open: Math.round(Math.min(280, innerWidth * 0.62)) }
+      : { closed: Math.round(Math.min(96, Math.max(64, innerWidth * 0.06))), open: Math.round(Math.min(380, Math.max(220, innerWidth * 0.24))) });
     const rows = $$('.partner');
     rows.forEach(row => {
       const btn = $('.partner__btn', row), panel = $('.partner__panel', row), ph = $('.partner__ph', row);
@@ -646,9 +655,12 @@
     if (busy) { queued = pathname; return; }
     busy = true;
     if (push) history.pushState({ path: pathname }, '', pathname);
-    // Moving between areas inside Projects is a filter change: no curtain
-    if (page.name === 'projects' && V.match(pathname).name === 'projects') {
+    // Areas (Architecture, Engineering, ...) open with a quick fade, never with the blue curtain
+    if (V.match(pathname).name === 'projects') {
+      page.closeMenu && page.closeMenu(true);
+      if (ANIM && page.name !== 'projects') await gsap.to(main, { opacity: 0, duration: 0.22, ease: 'power1.out' });
       render(pathname);
+      if (ANIM) gsap.fromTo(main, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'power1.out', clearProps: 'opacity' });
       page.intro && page.intro();
       busy = false;
       if (queued) { const q = queued; queued = null; go(q, false); }
@@ -735,9 +747,11 @@
       $('.loader__count', loader) && $('.loader__count', loader).remove();
       gsap.set($$('.lg, .lb, .ls', loader), { opacity: 0 });
       await ready;
-      await gsap.to(loader, { opacity: 0, duration: 0.3, ease: 'power2.out' });
+      // Opaque lift (no see-through fade): the navy panel slides away, the page appears beneath
+      await gsap.timeline()
+        .to(loader, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.75, ease: 'expo.inOut' })
+        .add(() => page.intro && page.intro(), 0.3);
       loader.remove();
-      page.intro && page.intro();
       ScrollTrigger.refresh();
       return;
     }

@@ -21,7 +21,7 @@
 <link rel="preload" href="./assets/fonts/rubik-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/fonts/rubik-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://www.hastudio.it">
-<link rel="stylesheet" href="./assets/css/style.css?v=2427b5cb">
+<link rel="stylesheet" href="./assets/css/style.css?v=7851dc88">
 <script>document.documentElement.classList.add('js');if('scrollRestoration' in history)history.scrollRestoration='manual';</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://www.hastudio.it/#org","name":"H&A Associati","url":"https://www.hastudio.it/","logo":"https://www.hastudio.it/assets/img/logo.svg","email":"info@hastudio.it","telephone":"+39 041 922888","description":"H&A Associati is a design practice based in Venice and Shanghai, with over thirty professionals working in the fields of architecture and engineering.","address":{"@type":"PostalAddress","streetAddress":"Banchina dell’Azoto 15/d","postalCode":"30175","addressLocality":"Marghera, Venice","addressCountry":"IT"},"location":[{"@type":"Place","name":"H&A Associati Venice","address":"Banchina dell’Azoto 15/d, 30175 Marghera, Venice, Italy"},{"@type":"Place","name":"H&A Associati Rome","address":"Via Giacomo Trevis, 88, 00147 Roma, RM, Italy"},{"@type":"Place","name":"H&A Associati Shanghai","address":"98 South Wanping Road,, 200010 Xuhui District, Shanghai, China"}],"sameAs":["https://www.instagram.com/ha_associati/","https://www.linkedin.com/company/ha-associati","https://www.facebook.com/HAassociati/"]},{"@type":"WebSite","name":"H&A Associati","url":"https://www.hastudio.it/"}]}</script>
 </head>
@@ -55,9 +55,6 @@
         </nav>
         <button class="header__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span class="header__burger-l">Menu</span><span class="header__burger-i"><span></span><span></span></span></button>
       </div>
-      <nav class="header__strip" aria-label="Areas">
-        <a href="./area/architecture/" data-top="architecture">Architecture</a><a href="./area/engineering/" data-top="engineering">Engineering</a><a href="./area/urban-planning-and-landscape/" data-top="urban-planning-and-landscape">Urban planning &amp; Landscape</a><a href="./area/competition/" data-top="competition">Competition</a>
-      </nav>
     </header>
     <div class="menu" id="menu" hidden>
       <div class="menu__inner wrap">
@@ -75,18 +72,46 @@
     </div>
 <main id="main" tabindex="-1">
 
-    <section class="intro wrap" aria-label="H&amp;A Associati">
-      <h1 class="intro__text"><span class="wm"><span class="wm__in">H&amp;A</span></span> <span class="wm"><span class="wm__in">Associati</span></span> <span class="wm"><span class="wm__in">is</span></span> <span class="wm"><span class="wm__in">a</span></span> <span class="wm"><span class="wm__in">design</span></span> <span class="wm"><span class="wm__in">practice</span></span> <span class="wm"><span class="wm__in">based</span></span> <span class="wm"><span class="wm__in">in</span></span> <span class="wm"><span class="wm__in">Venice</span></span> <span class="wm"><span class="wm__in">and</span></span> <span class="wm"><span class="wm__in">Shanghai,</span></span> <span class="wm"><span class="wm__in">with</span></span> <span class="wm"><span class="wm__in">over</span></span> <span class="wm"><span class="wm__in">thirty</span></span> <span class="wm"><span class="wm__in">professionals</span></span> <span class="wm"><span class="wm__in">working</span></span> <span class="wm"><span class="wm__in">in</span></span> <span class="wm"><span class="wm__in">the</span></span> <span class="wm"><span class="wm__in">fields</span></span> <span class="wm"><span class="wm__in">of</span></span> <span class="wm"><span class="wm__in">architecture</span></span> <span class="wm"><span class="wm__in">and</span></span> <span class="wm"><span class="wm__in">engineering.</span></span></h1>
-      <div class="intro__row">
-        <div class="intro__cta"><a class="cta " href="./the-firm/"><span>The Firm</span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></a></div>
-        <p class="intro__p">H&amp;A is a complex and organized firm able to satisfy its clients’ desires providing services with high quality standards. Our clients are developers and investors in real estate, government and public institutions, private clients and companies in the field of residential, retail, restaurants and hôtellerie.</p>
-      </div>
-    </section>
+    <nav class="areas-m wrap" aria-label="Areas">
+      <ul>
+        <li><a class="areas-m__a" href="./area/architecture/">
+            <span class="areas-m__img"><img src="https://www.hastudio.it/wp-content/uploads/Epica-Offices-Venice_01-300x200.webp" width="300" height="200" alt="" loading="lazy" decoding="async"></span>
+            <span class="areas-m__n">01</span>
+            <span class="areas-m__t">Architecture</span>
+            <span class="areas-m__c">19</span>
+            <span class="areas-m__arr"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></span>
+          </a></li><li><a class="areas-m__a" href="./area/engineering/">
+            <span class="areas-m__img"><img src="https://www.hastudio.it/wp-content/uploads/Bin-Hai-tribuna_03-300x200.webp" width="300" height="200" alt="" loading="lazy" decoding="async"></span>
+            <span class="areas-m__n">02</span>
+            <span class="areas-m__t">Engineering</span>
+            <span class="areas-m__c">2</span>
+            <span class="areas-m__arr"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></span>
+          </a></li><li><a class="areas-m__a" href="./area/urban-planning-and-landscape/">
+            <span class="areas-m__img"><img src="https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-300x200.webp" width="300" height="200" alt="" loading="lazy" decoding="async"></span>
+            <span class="areas-m__n">03</span>
+            <span class="areas-m__t">Urban planning &amp; Landscape</span>
+            <span class="areas-m__c">6</span>
+            <span class="areas-m__arr"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></span>
+          </a></li><li><a class="areas-m__a" href="./area/competition/">
+            <span class="areas-m__img"><img src="https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-300x200.webp" width="300" height="200" alt="" loading="lazy" decoding="async"></span>
+            <span class="areas-m__n">04</span>
+            <span class="areas-m__t">Competition</span>
+            <span class="areas-m__c">5</span>
+            <span class="areas-m__arr"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></span>
+          </a></li>
+      </ul>
+    </nav>
 
-    <section class="hero wrap" aria-label="Featured projects">
-      <div class="hero__frame">
-        <canvas class="hero__canvas" aria-hidden="true"></canvas>
-        <div class="hero__imgs"><img src="https://www.hastudio.it/wp-content/uploads/HA-Weifang-1.webp" srcset="https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="Weifang City" fetchpriority="high" decoding="async" class="is-on"><img src="https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House.webp" srcset="https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="Opera House" loading="lazy" decoding="async"><img src="https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI.webp" srcset="https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="Contemporary Art Museum" loading="lazy" decoding="async"><img src="https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna.webp" srcset="https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="New Bridge on Livenza River" loading="lazy" decoding="async"><img src="https://www.hastudio.it/wp-content/uploads/01_Seoul-Park.webp" srcset="https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="Grand Park" loading="lazy" decoding="async"></div>
+    <section class="hero wrap" aria-labelledby="h-feat">
+      <div class="hero__head">
+        <h2 class="sec__title" id="h-feat"><span class="wm"><span class="wm__in">Featured</span></span> <span class="wm"><span class="wm__in">projects</span></span></h2>
+        <span class="hero__count"><b>01</b> / 05</span>
+      </div>
+      <div class="hero__stage">
+        <div class="hero__frame">
+          <canvas class="hero__canvas" aria-hidden="true"></canvas>
+          <div class="hero__imgs"><img src="https://www.hastudio.it/wp-content/uploads/HA-Weifang-1.webp" srcset="https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/HA-Weifang-1.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="Weifang City" fetchpriority="high" decoding="async" class="is-on"><img src="https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House.webp" srcset="https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/01_Busan-Opera-House.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="Opera House" loading="lazy" decoding="async"><img src="https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI.webp" srcset="https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/04_MUSEO-SHANGHAI.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="Contemporary Art Museum" loading="lazy" decoding="async"><img src="https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna.webp" srcset="https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/Ponte-sul-Meduna.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="New Bridge on Livenza River" loading="lazy" decoding="async"><img src="https://www.hastudio.it/wp-content/uploads/01_Seoul-Park.webp" srcset="https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-300x200.webp 300w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-768x512.webp 768w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-1024x683.webp 1024w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-1040x693.webp 1040w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park-1140x760.webp 1140w, https://www.hastudio.it/wp-content/uploads/01_Seoul-Park.webp 1200w" sizes="(max-width: 1240px) 100vw, 1200px" width="1200" height="800" alt="Grand Park" loading="lazy" decoding="async"></div>
+        </div>
       </div>
       <div class="hero__info">
         <div class="hero__text">
@@ -96,7 +121,6 @@
         <div class="hero__side">
           <a class="hero__open cta" href="./projects/weifang-city/"><span>View project</span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></a>
           <div class="hero__nav">
-            <span class="hero__count"><b>01</b> / 05</span>
             <button class="car__btn hero__prev" type="button" aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></button>
             <button class="car__btn hero__next" type="button" aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></button>
           </div>
@@ -105,6 +129,16 @@
       <ol class="hero__steps">
         <li><button type="button" class="hero__step is-active" aria-label="Weifang City"><i><b></b></i><span>01</span><em>Weifang City</em></button></li><li><button type="button" class="hero__step" aria-label="Opera House"><i><b></b></i><span>02</span><em>Opera House</em></button></li><li><button type="button" class="hero__step" aria-label="Contemporary Art Museum"><i><b></b></i><span>03</span><em>Contemporary Art Museum</em></button></li><li><button type="button" class="hero__step" aria-label="New Bridge on Livenza River"><i><b></b></i><span>04</span><em>New Bridge on Livenza River</em></button></li><li><button type="button" class="hero__step" aria-label="Grand Park"><i><b></b></i><span>05</span><em>Grand Park</em></button></li>
       </ol>
+    </section>
+
+    <section class="intro wrap" aria-label="H&amp;A Associati">
+      <div class="intro__inner">
+        <h1 class="intro__text" data-r="words"><span class="wm"><span class="wm__in">H&amp;A</span></span> <span class="wm"><span class="wm__in">Associati</span></span> <span class="wm"><span class="wm__in">is</span></span> <span class="wm"><span class="wm__in">a</span></span> <span class="wm"><span class="wm__in">design</span></span> <span class="wm"><span class="wm__in">practice</span></span> <span class="wm"><span class="wm__in">based</span></span> <span class="wm"><span class="wm__in">in</span></span> <span class="wm"><span class="wm__in">Venice</span></span> <span class="wm"><span class="wm__in">and</span></span> <span class="wm"><span class="wm__in">Shanghai,</span></span> <span class="wm"><span class="wm__in">with</span></span> <span class="wm"><span class="wm__in">over</span></span> <span class="wm"><span class="wm__in">thirty</span></span> <span class="wm"><span class="wm__in">professionals</span></span> <span class="wm"><span class="wm__in">working</span></span> <span class="wm"><span class="wm__in">in</span></span> <span class="wm"><span class="wm__in">the</span></span> <span class="wm"><span class="wm__in">fields</span></span> <span class="wm"><span class="wm__in">of</span></span> <span class="wm"><span class="wm__in">architecture</span></span> <span class="wm"><span class="wm__in">and</span></span> <span class="wm"><span class="wm__in">engineering.</span></span></h1>
+        <div class="intro__row">
+          <p class="intro__p" data-r="up">H&amp;A is a complex and organized firm able to satisfy its clients’ desires providing services with high quality standards. Our clients are developers and investors in real estate, government and public institutions, private clients and companies in the field of residential, retail, restaurants and hôtellerie.</p>
+          <div class="intro__cta" data-r="up"><a class="cta " href="./the-firm/"><span>The Firm</span><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 12h17M14 5l7 7-7 7"/></svg></a></div>
+        </div>
+      </div>
     </section>
 
     <section class="areas wrap" aria-labelledby="h-areas">
@@ -403,12 +437,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
 <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="./assets/js/data.js?v=2427b5cb" defer></script>
-<script src="./assets/js/logo.js?v=2427b5cb" defer></script>
-<script src="./assets/js/views.js?v=2427b5cb" defer></script>
-<script src="./assets/js/lightbox.js?v=2427b5cb" defer></script>
-<script src="./assets/js/hero-gl.js?v=2427b5cb" defer></script>
-<script src="./assets/js/map.js?v=2427b5cb" defer></script>
-<script src="./assets/js/app.js?v=2427b5cb" defer></script>
+<script src="./assets/js/data.js?v=7851dc88" defer></script>
+<script src="./assets/js/logo.js?v=7851dc88" defer></script>
+<script src="./assets/js/views.js?v=7851dc88" defer></script>
+<script src="./assets/js/lightbox.js?v=7851dc88" defer></script>
+<script src="./assets/js/hero-gl.js?v=7851dc88" defer></script>
+<script src="./assets/js/map.js?v=7851dc88" defer></script>
+<script src="./assets/js/app.js?v=7851dc88" defer></script>
 </body>
 </html>
