@@ -454,7 +454,8 @@
       page.cleanup.push(M.whenNear(lm, () => api.init()), () => api.destroy());
     }
 
-    $$('.gitem, .pnav__img').forEach(el => el.setAttribute('data-r', 'img'));
+    $$('.pnav__img').forEach(el => el.setAttribute('data-r', 'img'));
+    initGallery($('.gal'));
 
     if (!ANIM) return;
     const t = $('.proj__title');
@@ -482,8 +483,101 @@
     $$('.firm__hero .frame, .fsec__img').forEach(el => el.setAttribute('data-r', 'img'));
     introTitle();
   }
+  /* ------------------------------------------------- project gallery */
+  // An exhibition walk: images hang on one eye line and slide past as you scroll.
+  // Desktop: vertical scroll drives the wall sideways. Phones: native swipe.
+  function initGallery(root) {
+    if (!root) return;
+    const pin = $('.gal__pin', root), track = $('.gal__track', root);
+    const items = $$('.gal__item', track);
+    const countB = $('.gal__count b', root), bar = $('.gal__progress i', root);
+    let lit = 0;
+
+    function light(i) {
+      if (i === lit) return;
+      lit = i;
+      items.forEach((it, k) => it.classList.toggle('is-lit', k === i));
+      countB.textContent = pad(i + 1);
+    }
+    // The image closest to the centre of the screen is "in the spotlight"
+    function nearest() {
+      const mid = innerWidth / 2;
+      let best = 0, d = Infinity;
+      items.forEach((it, k) => { const r = it.getBoundingClientRect(); const dd = Math.abs(r.left + r.width / 2 - mid); if (dd < d) { d = dd; best = k; } });
+      return best;
+    }
+    const setBar = p => { bar.style.transform = `scaleX(${Math.max(0, Math.min(1, p))})`; };
+
+    // Phones and any screen without GSAP: horizontal swipe with snapping
+    const onScroll = () => { const max = track.scrollWidth - track.clientWidth; setBar(max > 0 ? track.scrollLeft / max : 1); light(nearest()); };
+    track.addEventListener('scroll', onScroll, { passive: true });
+    page.cleanup.push(() => track.removeEventListener('scroll', onScroll));
+    // Arrow keys move along the wall when an image has focus
+    track.addEventListener('focusin', e => { const li = e.target.closest('.gal__item'); if (li) light(items.indexOf(li)); });
+
+    if (!ANIM) { root.classList.add('is-native'); onScroll(); return; }
+
+    const mm = gsap.matchMedia();
+    page.cleanup.push(() => mm.revert());
+    mm.add('(min-width: 861px) and (min-height: 560px)', () => {
+      root.classList.remove('is-native');
+      const dist = () => Math.max(0, track.scrollWidth - pin.clientWidth);
+      if (dist() < 40) { root.classList.add('is-static'); setBar(1); return () => root.classList.remove('is-static'); }
+      const tw = gsap.to(track, {
+        x: () => -dist(), ease: 'none',
+        scrollTrigger: {
+          trigger: pin, start: 'top top', end: () => '+=' + dist(), pin: true, scrub: 0.6, invalidateOnRefresh: true,
+          onUpdate: self => { setBar(self.progress); light(nearest()); },
+        },
+      });
+      return () => tw.scrollTrigger && tw.scrollTrigger.kill();
+    });
+    mm.add('(max-width: 860px), (max-height: 559px)', () => { root.classList.add('is-native'); onScroll(); return () => root.classList.remove('is-native'); });
+
+    // Entrance: the wall slides in once
+    gsap.set(items, { opacity: 0, x: 80 });
+    ScrollTrigger.create({ trigger: root, start: 'top 80%', once: true, onEnter: () => gsap.to(items, { opacity: 1, x: 0, duration: 1.2, ease: 'expo.out', stagger: 0.08, clearProps: 'x' }) });
+  }
+
+  /* ------------------------------------------------------- partners */
+  // One photo per partner: it grows into place when the profile opens
+  function initPartners() {
+    const sizes = () => (innerWidth <= 860
+      ? { closed: 56, open: Math.round(Math.min(180, Math.max(110, innerWidth * 0.4))) }
+      : { closed: Math.round(Math.min(96, Math.max(64, innerWidth * 0.06))), open: Math.round(Math.min(420, Math.max(220, innerWidth * 0.26))) });
+    const rows = $$('.partner');
+    rows.forEach(row => {
+      const btn = $('.partner__btn', row), panel = $('.partner__panel', row), ph = $('.partner__ph', row);
+      const toggle = () => {
+        const open = btn.getAttribute('aria-expanded') !== 'true';
+        const s = sizes();
+        btn.setAttribute('aria-expanded', open);
+        row.classList.toggle('is-open', open);
+        if (!window.gsap || reduced) {
+          panel.hidden = !open;
+          row.style.setProperty('--ph', (open ? s.open : s.closed) + 'px');
+          return;
+        }
+        if (open) {
+          panel.hidden = false;
+          gsap.fromTo(row, { '--ph': s.closed + 'px' }, { '--ph': s.open + 'px', duration: 0.8, ease: 'expo.inOut' });
+          gsap.fromTo(panel, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, duration: 0.8, ease: 'expo.inOut', onComplete: () => { panel.style.height = ''; ScrollTrigger.refresh(); } });
+        } else {
+          gsap.to(row, { '--ph': s.closed + 'px', duration: 0.7, ease: 'expo.inOut', onComplete: () => row.style.removeProperty('--ph') });
+          gsap.to(panel, { height: 0, opacity: 0, duration: 0.6, ease: 'expo.inOut', onComplete: () => { panel.hidden = true; panel.style.height = ''; ScrollTrigger.refresh(); } });
+        }
+      };
+      btn.addEventListener('click', toggle);
+      ph.addEventListener('click', toggle);
+    });
+    // Keep open photos at the right size when the window changes
+    const onResize = () => { const s = sizes(); rows.forEach(r => { if (r.classList.contains('is-open')) r.style.setProperty('--ph', s.open + 'px'); }); };
+    addEventListener('resize', onResize);
+    page.cleanup.push(() => removeEventListener('resize', onResize));
+  }
+
   function initPeople() {
-    initAccordions($$('.partner'), '.partner__btn', '.partner__panel');
+    initPartners();
     $$('.member').forEach(m => {
       const b = $('.member__more', m), bio = $('.member__bio', m);
       if (!b) return;

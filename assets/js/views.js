@@ -417,12 +417,25 @@
         </div>
       </section>` : ''}
 
-      <section class="gallery wrap" aria-label="Project images">
-        ${layoutGallery(gal).map(({ k, item }) => {
-          const n = lbIndex(p, item);
-          return `<figure class="gitem gitem--${k}" style="--nw:${item.w}px;--ar:${(item.w / item.h).toFixed(3)}"><button type="button" class="gitem__btn" data-lb="${n}" aria-label="Enlarge image ${n + 1} of ${lightboxItems(p).length}">${pic(item, sizeFor(k), `${p.title}, image ${n + 1}`)}</button></figure>`;
-        }).join('')}
-      </section>
+      ${gal.length ? `
+      <section class="gal" aria-labelledby="h-gal">
+        <div class="gal__pin">
+          <div class="wrap gal__head">
+            <h2 class="sec__title" id="h-gal">${words('Gallery')}<sup class="gal__sup">${pad(gal.length)}</sup></h2>
+            <p class="gal__count" aria-hidden="true"><b>01</b> / ${pad(gal.length)}</p>
+          </div>
+          <ol class="gal__track">
+            ${gal.map((item, k) => {
+              const n = lbIndex(p, item);
+              return `<li class="gal__item${k === 0 ? ' is-lit' : ''}" style="--ar:${(item.w / item.h).toFixed(3)};--nh:${item.h}px">
+                <button type="button" class="gal__btn" data-lb="${n}" aria-label="Enlarge image ${k + 1} of ${gal.length}">${pic(item, '(max-width: 860px) 86vw, 70vw', `${p.title}, image ${k + 1}`)}</button>
+                <span class="gal__cap"><span class="gal__n">${pad(k + 1)}</span><span class="gal__t">${esc(p.title)}</span></span>
+              </li>`;
+            }).join('')}
+          </ol>
+          <div class="wrap gal__foot"><div class="gal__progress" aria-hidden="true"><i></i></div></div>
+        </div>
+      </section>` : ''}
 
       <nav class="pnav wrap" aria-label="More projects">
         <a class="pnav__item pnav__item--prev" href="${U.project(prev.slug)}">
@@ -488,17 +501,14 @@
       <div class="partners">
         ${partners.members.map((m, i) => `
         <div class="partner">
+          <span class="partner__ph" aria-hidden="true">${photo(m, '(max-width: 860px) 180px, 420px')}</span>
           <h3 class="partner__h"><button class="partner__btn" type="button" aria-expanded="false" aria-controls="pp-${i}">
-            <span class="partner__ph">${photo(m, '110px')}</span>
             <span class="partner__name">${esc(m.name)}</span>
             <span class="partner__role">${esc(m.role)}</span>
             <span class="plus" aria-hidden="true"></span>
           </button></h3>
           <div class="partner__panel" id="pp-${i}" hidden>
-            <div class="partner__body">
-              <span class="partner__big">${photo(m, '(max-width: 860px) 0px, 33vw')}</span>
-              <div class="partner__text">${(m.bio.length ? m.bio : [m.role]).map(t => `<p>${esc(t)}</p>`).join('')}</div>
-            </div>
+            <div class="partner__text">${(m.bio.length ? m.bio : [m.role]).map(t => `<p>${esc(t)}</p>`).join('')}</div>
           </div>
         </div>`).join('')}
       </div>
