@@ -21,7 +21,7 @@
 <link rel="preload" href="../../../assets/fonts/rubik-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../../../assets/fonts/rubik-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://www.hastudio.it">
-<link rel="stylesheet" href="../../../assets/css/style.css?v=4bea8b5e">
+<link rel="stylesheet" href="../../../assets/css/style.css?v=716ff605">
 <script>document.documentElement.classList.add('js');if('scrollRestoration' in history)history.scrollRestoration='manual';</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://www.hastudio.it/#org","name":"H&A Associati","url":"https://www.hastudio.it/","logo":"https://www.hastudio.it/assets/img/logo.svg","email":"info@hastudio.it","telephone":"+39 041 922888","description":"H&A Associati is a design practice based in Venice and Shanghai, with over thirty professionals working in the fields of architecture and engineering.","address":{"@type":"PostalAddress","streetAddress":"Banchina dell’Azoto 15/d","postalCode":"30175","addressLocality":"Marghera, Venice","addressCountry":"IT"},"location":[{"@type":"Place","name":"H&A Associati Venice","address":"Banchina dell’Azoto 15/d, 30175 Marghera, Venice, Italy"},{"@type":"Place","name":"H&A Associati Rome","address":"Via Giacomo Trevis, 88, 00147 Roma, RM, Italy"},{"@type":"Place","name":"H&A Associati Shanghai","address":"98 South Wanping Road,, 200010 Xuhui District, Shanghai, China"}],"sameAs":["https://www.instagram.com/ha_associati/","https://www.linkedin.com/company/ha-associati","https://www.facebook.com/HAassociati/"]},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.hastudio.it/"},{"@type":"ListItem","position":2,"name":"Projects","item":"https://www.hastudio.it/projects/"},{"@type":"ListItem","position":3,"name":"Infrastructure","item":"https://www.hastudio.it/area/competition/infrastructure-competition/"}]},{"@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"url":"https://www.hastudio.it/projects/new-bridge-on-livenza-river/","name":"New Bridge on Livenza River"}]}]}</script>
 </head>
@@ -64,19 +64,43 @@
     <section class="pindex wrap">
       <div class="pindex__top">
         <h1 class="pindex__title" data-r="words"><span class="wm"><span class="wm__in">Infrastructure</span></span><sup class="pindex__count">01</sup></h1>
-        <div class="pindex__views" role="group" aria-label="View">
-          <button type="button" data-view="grid" aria-pressed="true">Grid</button>
-          <button type="button" data-view="list" aria-pressed="false">List</button>
-          <button type="button" data-view="map" aria-pressed="false">Map</button>
-        </div>
       </div>
-      <nav class="filters" aria-label="Filter by area">
-        <a href="../../../projects/" data-area="" aria-current="false">All<sup>31</sup></a>
-        <a href="../../../area/architecture/" data-area="architecture" aria-current="false">Architecture<sup>19</sup></a><a href="../../../area/engineering/" data-area="engineering" aria-current="false">Engineering<sup>2</sup></a><a href="../../../area/urban-planning-and-landscape/" data-area="urban-planning-and-landscape" aria-current="false">Urban planning &amp; Landscape<sup>6</sup></a><a href="../../../area/competition/" data-area="competition" aria-current="true">Competition<sup>5</sup></a>
-      </nav>
-      <nav class="subfilters" aria-label="Filter by category">
-        <a href="../../../area/competition/culture-museum-competition/" data-sub="culture-museum-competition" aria-current="false">Culture/Museum</a><a href="../../../area/competition/infrastructure-competition/" data-sub="infrastructure-competition" aria-current="true">Infrastructure</a><a href="../../../area/competition/landescape/" data-sub="landescape" aria-current="false">Landescape</a>
-      </nav>
+      <div class="ptools" role="group" aria-label="Project options">
+        <label class="ptool"><span class="ptool__l">Filter by</span>
+          <select class="ptool__s" data-tool="area">
+            <option value="">All projects (31)</option>
+            <optgroup label="Architecture">
+              <option value="architecture">All Architecture (19)</option>
+              <option value="commercial-mixed-use">Commercial / Mixed use (7)</option><option value="heritage">Heritage (3)</option><option value="hospitality">Hospitality (6)</option><option value="residential">Residential (3)</option>
+            </optgroup><optgroup label="Engineering">
+              <option value="engineering">All Engineering (2)</option>
+              <option value="infrastructure-engineering">Infrastructure (2)</option>
+            </optgroup><optgroup label="Urban planning &amp; Landscape">
+              <option value="urban-planning-and-landscape">All Urban planning &amp; Landscape (6)</option>
+              <option value="garden-public-parks">Garden/Public parks (2)</option><option value="masterplan">Masterplan (3)</option><option value="open-air">Open Air (1)</option>
+            </optgroup><optgroup label="Competition">
+              <option value="competition">All Competition (5)</option>
+              <option value="culture-museum-competition">Culture/Museum (1)</option><option value="infrastructure-competition" selected>Infrastructure (1)</option><option value="landescape">Landescape (3)</option>
+            </optgroup>
+          </select>
+        </label>
+        <label class="ptool"><span class="ptool__l">Sort by</span>
+          <select class="ptool__s" data-tool="sort">
+            <option value="featured">Featured</option>
+            <option value="az">Name A–Z</option>
+            <option value="za">Name Z–A</option>
+            <option value="location">Location</option>
+            <option value="status">Status</option>
+          </select>
+        </label>
+        <label class="ptool"><span class="ptool__l">View</span>
+          <select class="ptool__s" data-tool="view">
+            <option value="grid">Grid</option>
+            <option value="list">List</option>
+            <option value="map">Map</option>
+          </select>
+        </label>
+      </div>
 
       <ul class="pgrid" data-view-pane="grid">
         <li class="pgrid__item is-out" data-slug="weifang-city">
@@ -606,12 +630,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
 <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="../../../assets/js/data.js?v=4bea8b5e" defer></script>
-<script src="../../../assets/js/logo.js?v=4bea8b5e" defer></script>
-<script src="../../../assets/js/views.js?v=4bea8b5e" defer></script>
-<script src="../../../assets/js/lightbox.js?v=4bea8b5e" defer></script>
-<script src="../../../assets/js/hero-gl.js?v=4bea8b5e" defer></script>
-<script src="../../../assets/js/map.js?v=4bea8b5e" defer></script>
-<script src="../../../assets/js/app.js?v=4bea8b5e" defer></script>
+<script src="../../../assets/js/data.js?v=716ff605" defer></script>
+<script src="../../../assets/js/logo.js?v=716ff605" defer></script>
+<script src="../../../assets/js/views.js?v=716ff605" defer></script>
+<script src="../../../assets/js/lightbox.js?v=716ff605" defer></script>
+<script src="../../../assets/js/hero-gl.js?v=716ff605" defer></script>
+<script src="../../../assets/js/map.js?v=716ff605" defer></script>
+<script src="../../../assets/js/app.js?v=716ff605" defer></script>
 </body>
 </html>

@@ -74,6 +74,7 @@ ul, ol { list-style: none; }
 .ln { display: block; }
 .wm { display: inline-block; vertical-align: top; }
 .ln__in, .wm__in { display: inline-block; }
+.wm, .wd { white-space: nowrap; } /* a word never breaks across lines */
 
 /* call to action with arrow */
 .cta { display: inline-flex; align-items: center; gap: 14px; color: var(--navy); text-transform: uppercase; letter-spacing: .14em; font-size: .75rem; font-weight: 400; padding: 8px 0; }
@@ -334,6 +335,24 @@ body.menu-open .header__burger span:nth-child(2) { transform: rotate(-45deg); }
 .subfilters a:hover { color: var(--navy); }
 .subfilters a[aria-current="true"] { color: var(--navy); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
 
+.ptools { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: clamp(14px, 2.4vw, 40px); margin-bottom: clamp(32px, 4vw, 56px); }
+.ptool { display: grid; gap: 4px; min-width: 0; transition: opacity .3s; }
+.ptool.is-off { opacity: .35; pointer-events: none; }
+.ptool__l { text-transform: uppercase; letter-spacing: .14em; font-size: .68rem; color: var(--muted); }
+.ptool__s {
+  -webkit-appearance: none; appearance: none; width: 100%; min-width: 0;
+  font: inherit; font-size: 1rem; color: var(--navy); line-height: 1.3;
+  padding: 10px 30px 12px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; cursor: pointer;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23022753' stroke-width='1.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 2px center / 16px;
+  text-overflow: ellipsis; transition: border-color .3s;
+}
+.ptool__s:hover, .ptool__s:focus-visible { border-bottom-color: var(--navy); outline: none; }
+.ptool__s:focus-visible { box-shadow: 0 2px 0 var(--navy); }
+.ptool__s option, .ptool__s optgroup { color: var(--ink); background: #fff; }
+@media (max-width: 700px) {
+  .ptools { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 18px; }
+  .ptool:first-child { grid-column: 1 / -1; }
+}
 .pgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(32px, 3.4vw, 56px) clamp(16px, 2vw, 28px); }
 .pgrid__item.is-out, .prow.is-out { display: none; }
 

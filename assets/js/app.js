@@ -30,6 +30,13 @@
     if (!$('.footer')) document.body.insertAdjacentHTML('beforeend', V.footer());
     if (!$('.curtain')) document.body.insertAdjacentHTML('beforeend', `<div class="curtain" aria-hidden="true"><div class="curtain__mark">${V.markSVG()}</div></div>`);
     main = $('#main'); header = $('.header'); footer = $('.footer');
+    // The static HTML uses page-relative links ("../../people/"). Header, menu and footer
+    // stay on screen across page changes, so resolve them once into absolute paths.
+    $$('a[href]').forEach(a => {
+      const h = a.getAttribute('href');
+      if (!h || /^(https?:|mailto:|tel:|#|\/)/i.test(h)) return;
+      a.setAttribute('href', new URL(h, location.href).pathname);
+    });
   }
 
   /* -------------------------------------------------------------- scroll */
@@ -219,11 +226,12 @@
           .to(locEl, { yPercent: -110, duration: 0.45, ease: 'expo.in' }, 0)
           .add(() => {
             titleA.innerHTML = V.chars(p.title);
+            fitOne(titleA.parentElement);
             locEl.textContent = loc(p);
             gsap.fromTo($$('.ch', titleA), { yPercent: 110 }, { yPercent: 0, duration: 1, ease: 'expo.out', stagger: 0.015, delay: 0.1 });
             gsap.fromTo(locEl, { yPercent: 110 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', delay: 0.3 });
           });
-      } else { titleA.innerHTML = V.chars(p.title); locEl.textContent = loc(p); }
+      } else { titleA.innerHTML = V.chars(p.title); fitOne(titleA.parentElement); locEl.textContent = loc(p); }
       progress();
     }
     steps.forEach((s, i) => s.addEventListener('click', () => go(i)));
@@ -288,6 +296,22 @@
     $$('.disc__img').forEach(el => el.setAttribute('data-r', 'img'));
   }
 
+  /* ---------------------------------------------------- titles fit */
+  // Words never break; if the longest word is wider than its column, shrink that title to fit
+  const FIT = '.hero__title, .proj__title, .phead__title, .pindex__title, .sec__title, .fphil__title, .fsec__title, .psec__title, .proj__h';
+  function fitOne(el) {
+    el.style.fontSize = '';
+    const words = $$('.wd, .wm', el);
+    const avail = el.clientWidth;
+    if (!words.length || !avail) return;
+    const widest = Math.max(...words.map(w => w.offsetWidth));
+    if (widest > avail) {
+      const size = parseFloat(getComputedStyle(el).fontSize);
+      el.style.fontSize = Math.floor(size * (avail / widest) * 0.97) + 'px';
+    }
+  }
+  const fitTitles = (scope = document) => $$(FIT, scope).forEach(fitOne);
+
   /* ------------------------------------------------- image groups */
   // Any [data-lbgroup] block: its [data-lbsrc] images open together in the viewer
   function initImageGroups(scope) {
@@ -328,30 +352,45 @@
     const panes = $$('[data-view-pane]', root);
     const gridItems = $$('.pgrid__item', root), rows = $$('.prow', root);
     const empty = $('.empty', root), countEl = $('.pindex__count', root), titleEl = $('.pindex__title', root);
-    const sub = $('.subfilters', root);
+    const sel = k => $(`[data-tool="${k}"]`, root);
+    const store = (k, v) => { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } return null; };
     let mapApi = null, mapReady = false;
-    let view = 'grid';
-    try { view = sessionStorage.getItem('ha-view') || 'grid'; } catch (e) { /* storage unavailable */ }
+    let view = store('ha-view') || 'grid';
+    let sort = store('ha-sort') || 'featured';
 
     let active = route.area && areaBySlug[route.area] ? areaBySlug[route.area] : null;
     const current = () => (active ? P.filter(p => inArea(p, active.slug)) : P);
 
-    function renderSub() {
-      const top = active ? (active.parent ? areaById[active.parent] : active) : null;
-      const kids = top ? V.data.P && window.HA_DATA.areas.filter(a => a.parent === top.id && P.some(p => inArea(p, a.slug))) : [];
-      sub.innerHTML = kids.map(c => `<a href="${V.link(V.U.area(c))}" data-sub="${c.slug}" aria-current="${active && active.slug === c.slug}">${V.esc(c.name)}</a>`).join('');
-      $$('.filters a', root).forEach(a => a.setAttribute('aria-current', (a.dataset.area || '') === (top ? top.slug : '')));
+    // Sorting re-orders the existing cards and rows (no re-render, no flicker)
+    const statusRank = p => { const s = (p.facts.Status || '').toLowerCase(); return /complet/.test(s) ? 0 : /construct/.test(s) ? 1 : /design/.test(s) ? 2 : 3; };
+    const byTitle = (a, b) => a.title.localeCompare(b.title);
+    const SORTS = {
+      featured: (a, b) => P.indexOf(a) - P.indexOf(b),
+      az: byTitle,
+      za: (a, b) => byTitle(b, a),
+      location: (a, b) => V.data.country(a).localeCompare(V.data.country(b)) || loc(a).localeCompare(loc(b)) || byTitle(a, b),
+      status: (a, b) => statusRank(a) - statusRank(b) || byTitle(a, b),
+    };
+    function order() {
+      const sorted = P.slice().sort(SORTS[sort] || SORTS.featured);
+      const g = $('.pgrid', root), l = $('.plist ul', root);
+      const gi = Object.fromEntries(gridItems.map(el => [el.dataset.slug, el]));
+      const ri = Object.fromEntries(rows.map(el => [el.dataset.slug, el]));
+      sorted.forEach(p => { g.appendChild(gi[p.slug]); l.appendChild(ri[p.slug]); });
     }
+
     function apply(animate) {
       const list = current(), set = new Set(list.map(p => p.slug));
       gridItems.forEach(el => el.classList.toggle('is-out', !set.has(el.dataset.slug)));
       rows.forEach(el => el.classList.toggle('is-out', !set.has(el.dataset.slug)));
+      order();
       empty.hidden = list.length > 0;
       countEl.textContent = pad(list.length);
       const name = active ? active.name : 'Projects';
       $$('.wm', titleEl).forEach(w => w.remove());
       titleEl.insertAdjacentHTML('afterbegin', V.words(name));
-      renderSub();
+      fitOne(titleEl);
+      sel('area').value = active ? active.slug : '';
       const path = V.link(active ? V.U.area(active) : V.U.projects);
       if (location.pathname !== path) history.replaceState({ path }, '', path);
       document.title = active ? `${active.name} | Projects | H&A Associati` : 'Projects | H&A Associati';
@@ -364,9 +403,10 @@
     }
     function setView(v) {
       view = v;
-      try { sessionStorage.setItem('ha-view', v); } catch (e) { /* storage unavailable */ }
+      store('ha-view', v);
       panes.forEach(p => { p.hidden = p.dataset.viewPane !== v; });
-      $$('.pindex__views button', root).forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v));
+      sel('view').value = v;
+      sel('sort').closest('.ptool').classList.toggle('is-off', v === 'map');
       if (v === 'map') {
         if (!mapApi) { mapApi = initProjectsMap($('[data-map]', root), current()); mapApi && mapApi.setProjects(current()); }
         if (!mapReady && mapApi) { mapReady = true; mapApi.init().then(() => mapApi.setProjects(current())); }
@@ -374,18 +414,12 @@
       }
       window.ScrollTrigger && ScrollTrigger.refresh();
     }
-    root.addEventListener('click', e => {
-      const a = e.target.closest('.filters a, .subfilters a');
-      if (a) {
-        e.preventDefault();
-        const slug = a.dataset.sub || a.dataset.area;
-        active = slug ? (active && active.slug === slug && a.dataset.sub ? areaById[active.parent] : areaBySlug[slug]) : null;
-        apply(true);
-        return;
-      }
-      const b = e.target.closest('.pindex__views button');
-      if (b) setView(b.dataset.view);
-    });
+    sel('area').addEventListener('change', e => { active = e.target.value ? areaBySlug[e.target.value] : null; apply(true); });
+    sel('sort').addEventListener('change', e => { sort = e.target.value; store('ha-sort', sort); apply(true); });
+    sel('view').addEventListener('change', e => setView(e.target.value));
+    if (!SORTS[sort]) sort = 'featured';
+    sel('sort').value = sort;
+    if (!['grid', 'list', 'map'].includes(view)) view = 'grid';
     setView(view);
     apply(false);
 
@@ -493,6 +527,7 @@
     });
     scrollTop();
     const init = { home: initHome, projects: () => initProjects(r.route), project: () => initProject(r.route), firm: initFirm, people: initPeople }[r.name] || introTitle;
+    fitTitles(main);
     const run = () => { init(); initImageGroups(main); reveals(main); };
     if (window.gsap) page.ctx = gsap.context(run); else run();
     headerState();
@@ -505,23 +540,26 @@
     if (push) history.pushState({ path: pathname }, '', pathname);
     const curtain = $('.curtain');
     const glyphs = $$('.lg, .lb, .ls', curtain);
-    // Smooth, continuous movement: the curtain never waits on screen.
-    // The new page is rendered while the curtain covers it, then the curtain lifts straight away.
+    // Smooth movement: the logo appears as the curtain closes, stays readable for a moment
+    // while the new page is prepared underneath, then everything lifts away.
     if (ANIM) {
       gsap.killTweensOf([curtain, glyphs]);
       gsap.set(curtain, { visibility: 'visible', clipPath: 'inset(100% 0% 0% 0%)' });
       gsap.set(glyphs, { opacity: 0, y: 24 });
-      gsap.to(glyphs, { opacity: 1, y: 0, duration: 0.55, ease: 'expo.out', stagger: 0.02, delay: 0.3 });
-      await gsap.to(curtain, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.65, ease: 'expo.inOut' });
+      gsap.to(glyphs, { opacity: 1, y: 0, duration: 0.5, ease: 'expo.out', stagger: 0.02, delay: 0.22 });
+      await gsap.to(curtain, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'expo.inOut' });
     }
+    const shown = Date.now();
     render(pathname);
     main.focus({ preventScroll: true });
     if (ANIM) {
-      await Promise.race([page.ready || Promise.resolve(), new Promise(res => setTimeout(res, 250))]);
+      await Promise.race([page.ready || Promise.resolve(), new Promise(res => setTimeout(res, 600))]);
+      const hold = 420 - (Date.now() - shown); // keep the logo legible
+      if (hold > 0) await new Promise(res => setTimeout(res, hold));
       await gsap.timeline()
-        .to(glyphs, { opacity: 0, y: -16, duration: 0.35, ease: 'power2.in', overwrite: true })
-        .to(curtain, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.8, ease: 'expo.inOut' }, 0.05)
-        .add(() => page.intro && page.intro(), 0.4)
+        .to(glyphs, { opacity: 0, y: -16, duration: 0.4, ease: 'power2.in', overwrite: true })
+        .to(curtain, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.9, ease: 'expo.inOut' }, 0.12)
+        .add(() => page.intro && page.intro(), 0.5)
         .set(curtain, { visibility: 'hidden' });
     } else page.intro && page.intro();
     busy = false;
@@ -612,7 +650,7 @@
   }
 
   let rt;
-  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { window.ScrollTrigger && ScrollTrigger.refresh(); headerState(); }, 200); });
-  if (document.fonts) document.fonts.ready.then(() => window.ScrollTrigger && ScrollTrigger.refresh());
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { fitTitles(); window.ScrollTrigger && ScrollTrigger.refresh(); headerState(); }, 150); });
+  if (document.fonts) document.fonts.ready.then(() => { fitTitles(); window.ScrollTrigger && ScrollTrigger.refresh(); });
   boot();
 })();

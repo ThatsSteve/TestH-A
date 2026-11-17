@@ -292,19 +292,34 @@
     <section class="pindex wrap">
       <div class="pindex__top">
         <h1 class="pindex__title" data-r="words">${words(active ? active.name : 'Projects')}<sup class="pindex__count">${pad(list.length)}</sup></h1>
-        <div class="pindex__views" role="group" aria-label="View">
-          <button type="button" data-view="grid" aria-pressed="true">Grid</button>
-          <button type="button" data-view="list" aria-pressed="false">List</button>
-          <button type="button" data-view="map" aria-pressed="false">Map</button>
-        </div>
       </div>
-      <nav class="filters" aria-label="Filter by area">
-        <a href="${U.projects}" data-area="" aria-current="${!top}">All<sup>${P.length}</sup></a>
-        ${tops.map(a => `<a href="${U.area(a)}" data-area="${a.slug}" aria-current="${!!top && top.id === a.id}">${esc(a.name)}<sup>${countIn(a.slug)}</sup></a>`).join('')}
-      </nav>
-      <nav class="subfilters" aria-label="Filter by category">
-        ${top ? childrenOf(top.id).filter(c => countIn(c.slug)).map(c => `<a href="${U.area(c)}" data-sub="${c.slug}" aria-current="${active && active.slug === c.slug}">${esc(c.name)}</a>`).join('') : ''}
-      </nav>
+      <div class="ptools" role="group" aria-label="Project options">
+        <label class="ptool"><span class="ptool__l">Filter by</span>
+          <select class="ptool__s" data-tool="area">
+            <option value=""${top ? '' : ' selected'}>All projects (${P.length})</option>
+            ${tops.map(a => `<optgroup label="${esc(a.name)}">
+              <option value="${a.slug}"${active && active.slug === a.slug ? ' selected' : ''}>All ${esc(a.name)} (${countIn(a.slug)})</option>
+              ${childrenOf(a.id).filter(c => countIn(c.slug)).map(c => `<option value="${c.slug}"${active && active.slug === c.slug ? ' selected' : ''}>${esc(c.name)} (${countIn(c.slug)})</option>`).join('')}
+            </optgroup>`).join('')}
+          </select>
+        </label>
+        <label class="ptool"><span class="ptool__l">Sort by</span>
+          <select class="ptool__s" data-tool="sort">
+            <option value="featured">Featured</option>
+            <option value="az">Name A–Z</option>
+            <option value="za">Name Z–A</option>
+            <option value="location">Location</option>
+            <option value="status">Status</option>
+          </select>
+        </label>
+        <label class="ptool"><span class="ptool__l">View</span>
+          <select class="ptool__s" data-tool="view">
+            <option value="grid">Grid</option>
+            <option value="list">List</option>
+            <option value="map">Map</option>
+          </select>
+        </label>
+      </div>
 
       <ul class="pgrid" data-view-pane="grid">${P.map(p => `
         <li class="pgrid__item${list.includes(p) ? '' : ' is-out'}" data-slug="${p.slug}">
