@@ -193,7 +193,7 @@
     const count = $('.hero__count b');
     const steps = $$('.hero__step');
     const f = featured;
-    const DUR = 7;
+    const DUR = 9; // seconds each featured project stays on screen
     let cur = 0, prog = null, timer = null, visible = true;
 
     const gl = window.HeroGL ? window.HeroGL(canvas, f.map(p => p.cover.src), r => page.loadProgress && page.loadProgress(r)) : null;
@@ -219,16 +219,16 @@
       steps.forEach((s, k) => s.classList.toggle('is-active', k === i));
       count.textContent = pad(i + 1);
       titleA.href = openEl.href = V.link(V.U.project(p.slug));
-      if (useGL) gl.goTo(i); else imgs.forEach((im, k) => im.classList.toggle('is-on', k === i));
+      if (useGL) gl.goTo(i, 2.4); else imgs.forEach((im, k) => im.classList.toggle('is-on', k === i));
       if (ANIM) {
         gsap.timeline()
-          .to($$('.ch', titleA), { yPercent: -110, duration: 0.5, ease: 'expo.in', stagger: 0.01 })
+          .to($$('.ch', titleA), { yPercent: -110, duration: 0.7, ease: 'power3.in', stagger: 0.012 })
           .to(locEl, { yPercent: -110, duration: 0.45, ease: 'expo.in' }, 0)
           .add(() => {
             titleA.innerHTML = V.chars(p.title);
             fitOne(titleA.parentElement);
             locEl.textContent = loc(p);
-            gsap.fromTo($$('.ch', titleA), { yPercent: 110 }, { yPercent: 0, duration: 1, ease: 'expo.out', stagger: 0.015, delay: 0.1 });
+            gsap.fromTo($$('.ch', titleA), { yPercent: 110 }, { yPercent: 0, duration: 1.4, ease: 'expo.out', stagger: 0.02, delay: 0.5 });
             gsap.fromTo(locEl, { yPercent: 110 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', delay: 0.3 });
           });
       } else { titleA.innerHTML = V.chars(p.title); fitOne(titleA.parentElement); locEl.textContent = loc(p); }
@@ -275,17 +275,19 @@
 
     gsap.set($$('.ch', titleA), { yPercent: 110 });
     gsap.set(locEl, { yPercent: 110 });
-    gsap.set(['.hero__open', '.hero__bar'], { opacity: 0, y: 16 });
-    gsap.set(frame, { opacity: 0, y: 24 });
+    // Opening: the studio statement first, then the featured projects beneath it
+    const introWords = $$('.intro__text .wm__in');
+    gsap.set(introWords, { yPercent: 110 });
+    gsap.set(['.intro__row', '.hero__side', '.hero__steps'], { opacity: 0, y: 16 });
+    gsap.set(frame, { opacity: 0, y: 32 });
     page.intro = () => gsap.timeline()
-      .to(frame, { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' }, 0)
-      .to($$('.ch', titleA), { yPercent: 0, duration: 1.2, ease: 'expo.out', stagger: 0.022 }, 0.5)
-      .to(locEl, { yPercent: 0, duration: 1, ease: 'expo.out' }, 0.8)
-      .to(['.hero__open', '.hero__bar'], { opacity: 1, y: 0, duration: 1, ease: 'expo.out', stagger: 0.08 }, 0.9)
-      .add(progress, 1.1);
-
-    // The statement fills with ink as it is read
-    gsap.to($$('.statement__text .w'), { color: '#022753', stagger: 0.1, ease: 'none', scrollTrigger: { trigger: '.statement__text', start: 'top 80%', end: 'bottom 50%', scrub: true } });
+      .to(introWords, { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.025 }, 0)
+      .to('.intro__row', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, 0.6)
+      .to(frame, { opacity: 1, y: 0, duration: 1.4, ease: 'power3.out' }, 0.7)
+      .to($$('.ch', titleA), { yPercent: 0, duration: 1.3, ease: 'expo.out', stagger: 0.022 }, 1.1)
+      .to(locEl, { yPercent: 0, duration: 1, ease: 'expo.out' }, 1.4)
+      .to(['.hero__side', '.hero__steps'], { opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.08 }, 1.4)
+      .add(progress, 1.6);
 
     // Figures count up once
     $$('.fig__n[data-count]').forEach(el => {

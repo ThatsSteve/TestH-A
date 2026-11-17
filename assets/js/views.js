@@ -212,29 +212,36 @@
     const join = arr => arr.join(', ').replace(/, ([^,]*)$/, ' and $1');
 
     return `
-    <h1 class="sr-only">H&amp;A Associati, architecture and engineering in Venice and Shanghai</h1>
+    <section class="intro wrap" aria-label="H&amp;A Associati">
+      <h1 class="intro__text">${words(D.site.description)}</h1>
+      <div class="intro__row">
+        <div class="intro__cta">${cta(U.firm, 'The Firm')}</div>
+        ${intro[1] ? `<p class="intro__p">${esc(intro[1])}</p>` : ''}
+      </div>
+    </section>
+
     <section class="hero wrap" aria-label="Featured projects">
-      <div class="hero__grid">
+      <div class="hero__frame">
+        <canvas class="hero__canvas" aria-hidden="true"></canvas>
+        <div class="hero__imgs">${f.map((p, i) => pic(p.cover, SZ.cover, p.title, { eager: i === 0, cls: i === 0 ? 'is-on' : '' })).join('')}</div>
+      </div>
+      <div class="hero__info">
         <div class="hero__text">
           <h2 class="hero__title"><a href="${U.project(f[0].slug)}">${chars(f[0].title)}</a></h2>
           <p class="hero__loc caps"><span>${esc(loc(f[0]))}</span></p>
+        </div>
+        <div class="hero__side">
           <a class="hero__open cta" href="${U.project(f[0].slug)}"><span>View project</span>${arrowSVG}</a>
-        </div>
-        <div class="hero__frame">
-          <canvas class="hero__canvas" aria-hidden="true"></canvas>
-          <div class="hero__imgs">${f.map((p, i) => pic(p.cover, SZ.cover, p.title, { eager: i === 0, cls: i === 0 ? 'is-on' : '' })).join('')}</div>
-        </div>
-      </div>
-      <div class="hero__bar">
-        <ol class="hero__steps">
-          ${f.map((p, i) => `<li><button type="button" class="hero__step${i === 0 ? ' is-active' : ''}" aria-label="${esc(p.title)}"><i><b></b></i><span>${pad(i + 1)}</span><em>${esc(p.title)}</em></button></li>`).join('')}
-        </ol>
-        <div class="hero__nav">
-          <span class="hero__count"><b>01</b> / ${pad(f.length)}</span>
-          <button class="car__btn hero__prev" type="button" aria-label="Previous project">${arrowSVG}</button>
-          <button class="car__btn hero__next" type="button" aria-label="Next project">${arrowSVG}</button>
+          <div class="hero__nav">
+            <span class="hero__count"><b>01</b> / ${pad(f.length)}</span>
+            <button class="car__btn hero__prev" type="button" aria-label="Previous project">${arrowSVG}</button>
+            <button class="car__btn hero__next" type="button" aria-label="Next project">${arrowSVG}</button>
+          </div>
         </div>
       </div>
+      <ol class="hero__steps">
+        ${f.map((p, i) => `<li><button type="button" class="hero__step${i === 0 ? ' is-active' : ''}" aria-label="${esc(p.title)}"><i><b></b></i><span>${pad(i + 1)}</span><em>${esc(p.title)}</em></button></li>`).join('')}
+      </ol>
     </section>
 
     <section class="areas wrap" aria-labelledby="h-areas">
@@ -278,13 +285,6 @@
       <div class="wrap ed__more">${cta(U.projects, 'More projects')}</div>
     </section>
 
-    <section class="statement wrap">
-      <p class="statement__text">${esc(D.site.description).split(' ').map(w => `<span class="w">${w}</span>`).join(' ')}</p>
-      <div class="statement__cols">
-        ${intro.slice(1, 3).map(t => `<p data-r="up">${esc(t)}</p>`).join('')}
-        <div class="statement__cta" data-r="up">${cta(U.firm, 'The Firm')}</div>
-      </div>
-    </section>
 
     <section class="sec sec--map" aria-labelledby="h-map">
       <div class="wrap sec__head">
