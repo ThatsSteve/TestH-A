@@ -21,15 +21,15 @@ python -m http.server 5173
 
 Then open http://localhost:5173. The URLs are the same as on the current site: `/projects/<slug>/`, `/area/<area>/`, `/the-firm/`, `/people/`.
 
-### GitHub Pages (sub-folder)
+### Hosting
 
-The pages in this repository are built for GitHub Pages, where the site lives at `https://thatssteve.github.io/TestH-A/`:
+All links and assets are relative, so the same files work anywhere without rebuilding:
 
-```bash
-node build.js --base=TestH-A
-```
+- **Netlify**: publish directory `.` with no build command (already set in `netlify.toml`).
+- **GitHub Pages**: branch `main`, folder `/ (root)`, at `https://thatssteve.github.io/TestH-A/`.
+- **Final domain**: upload the folder as is.
 
-For the final domain (site at the root), build without `--base`.
+`404.html` is self-contained. If the site is published in another sub-folder, add it to `SUBFOLDERS` in `build.js` so the "Back to home" link points to the right place.
 
 ## Notes
 

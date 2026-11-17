@@ -82,10 +82,10 @@
       gsap.set(el, { opacity: 0, y: 28 });
       once(el, () => gsap.to(el, { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }));
     });
-    // Images: a single clean wipe, no zoom (never upscale the photos)
+    // Images: a soft fade with a slight rise, no zoom (never upscale the photos)
     $$('[data-r="img"]', scope).forEach(el => {
-      gsap.set(el, { clipPath: 'inset(0% 0% 100% 0%)' });
-      once(el, () => gsap.to(el, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'expo.inOut' }), 'top 92%');
+      gsap.set(el, { opacity: 0, y: 32 });
+      once(el, () => gsap.to(el, { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' }), 'top 94%');
     });
   }
 
@@ -268,9 +268,9 @@
     gsap.set($$('.ch', titleA), { yPercent: 110 });
     gsap.set(locEl, { yPercent: 110 });
     gsap.set(['.hero__open', '.hero__bar'], { opacity: 0, y: 16 });
-    gsap.set(frame, { clipPath: 'inset(0% 0% 100% 0%)' });
+    gsap.set(frame, { opacity: 0, y: 24 });
     page.intro = () => gsap.timeline()
-      .to(frame, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.4, ease: 'expo.inOut' }, 0)
+      .to(frame, { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' }, 0)
       .to($$('.ch', titleA), { yPercent: 0, duration: 1.2, ease: 'expo.out', stagger: 0.022 }, 0.5)
       .to(locEl, { yPercent: 0, duration: 1, ease: 'expo.out' }, 0.8)
       .to(['.hero__open', '.hero__bar'], { opacity: 1, y: 0, duration: 1, ease: 'expo.out', stagger: 0.08 }, 0.9)
@@ -288,6 +288,19 @@
     $$('.disc__img').forEach(el => el.setAttribute('data-r', 'img'));
   }
 
+  /* ------------------------------------------------- image groups */
+  // Any [data-lbgroup] block: its [data-lbsrc] images open together in the viewer
+  function initImageGroups(scope) {
+    const LB = window.HA_LIGHTBOX;
+    if (!LB) return;
+    $$('[data-lbgroup]', scope).forEach(group => {
+      const btns = $$('[data-lbsrc]', group);
+      const items = btns.map(b => ({ src: b.dataset.lbsrc }));
+      btns.forEach((b, i) => b.addEventListener('click', () => LB.open(items, i, { title: group.dataset.lbgroup, lock })));
+    });
+    page.cleanup.push(() => { if (LB.isOpen) LB.close(true); });
+  }
+
   /* ---------------------------------------------------------- accordion */
   function initAccordions(rows, btnSel, panelSel) {
     rows.forEach(row => {
@@ -301,7 +314,7 @@
           panel.hidden = false;
           gsap.fromTo(panel, { height: 0 }, { height: 'auto', duration: 0.8, ease: 'expo.inOut', onComplete: () => { panel.style.height = ''; ScrollTrigger.refresh(); } });
           const ims = $$('img', panel).map(i => i.parentElement);
-          if (ims.length) gsap.fromTo(ims, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'expo.inOut', stagger: 0.06, delay: 0.15 });
+          if (ims.length) gsap.fromTo(ims, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.06, delay: 0.2 });
         } else {
           gsap.to(panel, { height: 0, duration: 0.6, ease: 'expo.inOut', onComplete: () => { panel.hidden = true; panel.style.height = ''; ScrollTrigger.refresh(); } });
         }
@@ -413,12 +426,12 @@
     const t = $('.proj__title');
     gsap.set($$('.wm__in', t), { yPercent: 110 });
     gsap.set($$('.proj__loc .ln__in'), { yPercent: 110 });
-    gsap.set('.proj__cover', { clipPath: 'inset(0% 0% 100% 0%)' });
+    gsap.set('.proj__cover', { opacity: 0, y: 28 });
     gsap.set($$('.facts__row'), { opacity: 0, y: 16 });
     page.intro = () => gsap.timeline()
       .to($$('.wm__in', t), { yPercent: 0, duration: 1.2, ease: 'expo.out', stagger: 0.05 }, 0)
       .to($$('.proj__loc .ln__in'), { yPercent: 0, duration: 1, ease: 'expo.out' }, 0.25)
-      .to('.proj__cover', { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.4, ease: 'expo.inOut' }, 0.2)
+      .to('.proj__cover', { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' }, 0.2)
       .to($$('.facts__row'), { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.06 }, 0.7);
   }
 
@@ -480,7 +493,7 @@
     });
     scrollTop();
     const init = { home: initHome, projects: () => initProjects(r.route), project: () => initProject(r.route), firm: initFirm, people: initPeople }[r.name] || introTitle;
-    const run = () => { init(); reveals(main); };
+    const run = () => { init(); initImageGroups(main); reveals(main); };
     if (window.gsap) page.ctx = gsap.context(run); else run();
     headerState();
     if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
@@ -492,21 +505,23 @@
     if (push) history.pushState({ path: pathname }, '', pathname);
     const curtain = $('.curtain');
     const glyphs = $$('.lg, .lb, .ls', curtain);
+    // Smooth, continuous movement: the curtain never waits on screen.
+    // The new page is rendered while the curtain covers it, then the curtain lifts straight away.
     if (ANIM) {
-      await gsap.timeline()
-        .set(curtain, { visibility: 'visible', clipPath: 'inset(100% 0% 0% 0%)' })
-        .set(glyphs, { opacity: 0, y: 40 })
-        .to(curtain, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.42, ease: 'power3.inOut' })
-        .to(glyphs, { opacity: 1, y: 0, duration: 0.3, ease: 'power3.out', stagger: 0.012 }, '-=0.15');
+      gsap.killTweensOf([curtain, glyphs]);
+      gsap.set(curtain, { visibility: 'visible', clipPath: 'inset(100% 0% 0% 0%)' });
+      gsap.set(glyphs, { opacity: 0, y: 24 });
+      gsap.to(glyphs, { opacity: 1, y: 0, duration: 0.55, ease: 'expo.out', stagger: 0.02, delay: 0.3 });
+      await gsap.to(curtain, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.65, ease: 'expo.inOut' });
     }
     render(pathname);
     main.focus({ preventScroll: true });
     if (ANIM) {
-      await Promise.race([page.ready || Promise.resolve(), new Promise(res => setTimeout(res, 450))]);
+      await Promise.race([page.ready || Promise.resolve(), new Promise(res => setTimeout(res, 250))]);
       await gsap.timeline()
-        .to(glyphs, { opacity: 0, y: -20, duration: 0.18, ease: 'power2.in' })
-        .to(curtain, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.5, ease: 'power3.inOut' }, '-=0.05')
-        .add(() => page.intro && page.intro(), '-=0.32')
+        .to(glyphs, { opacity: 0, y: -16, duration: 0.35, ease: 'power2.in', overwrite: true })
+        .to(curtain, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.8, ease: 'expo.inOut' }, 0.05)
+        .add(() => page.intro && page.intro(), 0.4)
         .set(curtain, { visibility: 'hidden' });
     } else page.intro && page.intro();
     busy = false;
@@ -587,10 +602,10 @@
     await Promise.all([counter, intro]);
     count.textContent = '100';
     await gsap.timeline()
-      .to(count, { yPercent: -110, duration: 0.3, ease: 'power2.in' })
-      .to($$('.lg, .lb, .ls', mark), { opacity: 0, y: -16, duration: 0.3, ease: 'power2.in' }, 0)
-      .to(loader, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.6, ease: 'power3.inOut' }, 0.2)
-      .add(() => page.intro && page.intro(), 0.45);
+      .to(count, { yPercent: -110, duration: 0.4, ease: 'power2.in' })
+      .to($$('.lg, .lb, .ls', mark), { opacity: 0, y: -16, duration: 0.4, ease: 'power2.in' }, 0)
+      .to(loader, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.85, ease: 'expo.inOut' }, 0.15)
+      .add(() => page.intro && page.intro(), 0.5);
     loader.remove();
     lock(false);
     ScrollTrigger.refresh();

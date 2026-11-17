@@ -184,7 +184,8 @@
       </div>
       <div class="pmap__grid">
         <div class="pmap__canvas" aria-label="Map of project locations"><div class="pmap__note">Loading map</div></div>
-        <ol class="pmap__list">
+        <button type="button" class="pmap__more" aria-expanded="false" aria-controls="pl-${id}"><span>List of projects<sup>${list.length}</sup></span><span class="plus" aria-hidden="true"></span></button>
+        <ol class="pmap__list" id="pl-${id}">
           ${list.map(p => `<li data-slug="${p.slug}" data-country="${country(p)}"><a href="${U.project(p.slug)}"><span class="pmap__t">${esc(p.title)}</span><span class="pmap__l">${esc(loc(p))}</span></a></li>`).join('')}
         </ol>
       </div>
@@ -267,7 +268,7 @@
         <div class="disc__panel" id="disc-${i}"${i === 0 ? '' : ' hidden'}>
           <div class="disc__body">
             <div class="disc__text">${lines(s.columns.flat()).map(t => isCaps(t) ? `<p class="sub">${esc(t)}</p>` : `<p>${esc(t)}</p>`).join('')}</div>
-            <div class="disc__imgs">${s.images.map(im => `<span class="disc__img">${pic(im, SZ.small, '')}</span>`).join('')}</div>
+            <div class="disc__imgs" data-lbgroup="${esc(s.title)}">${s.images.map((im, k) => `<button type="button" class="disc__img" data-lbsrc="${esc(im.src)}" aria-label="Enlarge ${esc(s.title)} image ${k + 1}">${pic(im, SZ.small, '')}</button>`).join('')}</div>
           </div>
         </div>
       </div>`).join('')}
@@ -437,7 +438,7 @@
       <h1 class="phead__title">${words('The Firm')}</h1>
       <p class="phead__lead" data-r="words">${words(c1[0] || '')}</p>
     </section>
-    <figure class="firm__hero wrap"><span class="frame" style="--nw:${F.hero.w}px">${pic(F.hero, '(max-width: 1680px) 100vw, 1620px', 'H&A Associati | An Italian architectural firm', { eager: true })}</span></figure>
+    <figure class="firm__hero wrap" data-lbgroup="H&amp;A Associati"><button type="button" class="frame" data-lbsrc="${esc(F.hero.src)}" aria-label="Enlarge image" style="--nw:${F.hero.w}px">${pic(F.hero, '(max-width: 1680px) 100vw, 1620px', 'H&A Associati | An Italian architectural firm', { eager: true })}</button></figure>
     <section class="firm__intro wrap">
       <div class="firm__col">${col1.map(t => `<p data-r="up">${esc(t)}</p>`).join('')}${iso ? `<p class="sub" data-r="up">${esc(iso)}</p>` : ''}</div>
       <div class="firm__col">${c2.map(t => `<p data-r="up">${esc(t)}</p>`).join('')}</div>
@@ -448,7 +449,7 @@
         <h2 class="fsec__title" data-r="words">${words(s.title)}</h2>
         <div class="fsec__body">${lines(s.columns.flat()).map(para).join('')}</div>
       </div>
-      <div class="fsec__imgs">${s.images.map(im => `<span class="fsec__img">${pic(im, SZ.small, '')}</span>`).join('')}</div>
+      <div class="fsec__imgs" data-lbgroup="${esc(s.title)}">${s.images.map((im, k) => `<button type="button" class="fsec__img" data-lbsrc="${esc(im.src)}" aria-label="Enlarge ${esc(s.title)} image ${k + 1}">${pic(im, SZ.small, '')}</button>`).join('')}</div>
     </section>`).join('')}
     ${phil ? `
     <section class="fphil" data-dark>

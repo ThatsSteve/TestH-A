@@ -1,0 +1,9 @@
+# Netlify: the site is already built (static HTML), so there is nothing to compile.
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

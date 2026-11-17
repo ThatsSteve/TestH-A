@@ -121,7 +121,16 @@
     function syncList() {
       const set = new Set(visibleList().map(p => p.slug));
       listEl.querySelectorAll('li').forEach(li => { li.hidden = !set.has(li.dataset.slug); });
+      if (moreBtn) moreBtn.querySelector('sup').textContent = set.size;
     }
+    // On phones the written list stays folded until asked for, so it never blocks page scrolling
+    const moreBtn = root.querySelector('.pmap__more');
+    if (moreBtn) moreBtn.addEventListener('click', () => {
+      const open = moreBtn.getAttribute('aria-expanded') !== 'true';
+      moreBtn.setAttribute('aria-expanded', open);
+      root.classList.toggle('is-list', open);
+      window.ScrollTrigger && ScrollTrigger.refresh();
+    });
 
     function card(slug) {
       const p = V.data.projBySlug[slug];

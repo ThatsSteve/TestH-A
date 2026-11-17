@@ -2,8 +2,9 @@
    Pre-renders every route to its own index.html (same URLs as hastudio.it),
    with title, description, canonical, Open Graph and JSON-LD, plus sitemap.xml
    and robots.txt.
-   Usage:  node build.js                  (site at the domain root)
-           node build.js --base=TestH-A   (site in a sub-folder, e.g. GitHub Pages)  */
+   All internal links and assets are relative, so the same files work at a
+   domain root (Netlify, final domain) and in a sub-folder (GitHub Pages).
+   Usage:  node build.js  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -12,24 +13,28 @@ const crypto = require('crypto');
 const ROOT = __dirname;
 const D = require('./assets/js/data.js');
 const L = require('./assets/js/logo.js');
-const arg = process.argv.find(a => a.startsWith('--base='));
-// Accepts "--base=TestH-A" or "--base=/TestH-A" (some shells rewrite leading slashes)
-const rawBase = (arg ? arg.slice(7) : '').replace(/\\/g, '/').split('/').filter(Boolean).pop() || '';
-const BASE = rawBase ? '/' + rawBase : '';
-const V = require('./assets/js/views.js')(D, L, BASE);
+const V = require('./assets/js/views.js')(D, L, '');
+// Sub-folders the site may be published under. Only 404.html needs this,
+// because it can be served at any depth.
+const SUBFOLDERS = ['/TestH-A/'];
 
 // Cache-busting version from the asset contents
 const assets = ['assets/css/style.css', 'assets/js/data.js', 'assets/js/logo.js', 'assets/js/views.js', 'assets/js/hero-gl.js', 'assets/js/lightbox.js', 'assets/js/map.js', 'assets/js/app.js'];
 const ver = crypto.createHash('md5').update(assets.map(a => fs.readFileSync(path.join(ROOT, a))).join('')).digest('hex').slice(0, 8);
 
-function page(r) {
+// Tells the browser-side router where the site root is (links in the HTML are already relative)
+const baseScript = rel => `<script>window.HA_BASE=new URL(${JSON.stringify(rel)},location.href).pathname.slice(0,-1);</script>`;
+
+// rel: path from the page back to the site root ("./", "../", "../../")
+function page(r, rel) {
   const m = r.meta;
   const url = V.SITE_URL + m.path;
   const ld = m.jsonld && m.jsonld.length ? `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': m.jsonld }).replace(/</g, '\\u003c')}</script>` : '';
-  return `<!doctype html>
+  const html = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
+${baseScript(rel)}
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${V.esc(m.title)}</title>
 <meta name="description" content="${V.esc(m.description)}">
@@ -44,12 +49,12 @@ function page(r) {
 <meta property="og:url" content="${url}">
 <meta property="og:image" content="${V.esc(m.image)}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="${BASE}/assets/img/logo.svg" type="image/svg+xml">
-<link rel="preload" href="${BASE}/assets/fonts/rubik-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="${BASE}/assets/fonts/rubik-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="/assets/img/logo.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/rubik-latin-300-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/rubik-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://www.hastudio.it">
-<link rel="stylesheet" href="${BASE}/assets/css/style.css?v=${ver}">
-<script>window.HA_BASE=${JSON.stringify(BASE)};document.documentElement.classList.add('js');if('scrollRestoration' in history)history.scrollRestoration='manual';</script>
+<link rel="stylesheet" href="/assets/css/style.css?v=${ver}">
+<script>document.documentElement.classList.add('js');if('scrollRestoration' in history)history.scrollRestoration='manual';</script>
 ${ld}
 </head>
 <body id="top">
@@ -64,16 +69,18 @@ ${V.footer()}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
 <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js" defer></script>
-<script src="${BASE}/assets/js/data.js?v=${ver}" defer></script>
-<script src="${BASE}/assets/js/logo.js?v=${ver}" defer></script>
-<script src="${BASE}/assets/js/views.js?v=${ver}" defer></script>
-<script src="${BASE}/assets/js/lightbox.js?v=${ver}" defer></script>
-<script src="${BASE}/assets/js/hero-gl.js?v=${ver}" defer></script>
-<script src="${BASE}/assets/js/map.js?v=${ver}" defer></script>
-<script src="${BASE}/assets/js/app.js?v=${ver}" defer></script>
+<script src="/assets/js/data.js?v=${ver}" defer></script>
+<script src="/assets/js/logo.js?v=${ver}" defer></script>
+<script src="/assets/js/views.js?v=${ver}" defer></script>
+<script src="/assets/js/lightbox.js?v=${ver}" defer></script>
+<script src="/assets/js/hero-gl.js?v=${ver}" defer></script>
+<script src="/assets/js/map.js?v=${ver}" defer></script>
+<script src="/assets/js/app.js?v=${ver}" defer></script>
 </body>
 </html>
 `;
+  // Turn every root-relative link ("/projects/x/") into a page-relative one ("../../projects/x/")
+  return html.replace(/(href|src)="\/(?!\/)/g, `$1="${rel}`);
 }
 
 function write(rel, content) {
@@ -86,8 +93,36 @@ function write(rel, content) {
 for (const dir of ['projects', 'area', 'the-firm', 'people']) fs.rmSync(path.join(ROOT, dir), { recursive: true, force: true });
 
 const paths = V.allPaths();
-for (const p of paths) write(path.join(p, 'index.html'), page(V.render(p)));
-write('404.html', page(V.render('/404/')));
+const relFor = p => '../'.repeat(p.split('/').filter(Boolean).length) || './';
+for (const p of paths) write(path.join(p, 'index.html'), page(V.render(p), relFor(p)));
+// 404.html can be served at any depth and on any host, so it is self-contained
+write('404.html', `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found | H&amp;A Associati</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#022753">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { display: grid; place-items: center; background: #022753; color: #fff; font-family: Rubik, system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 300; text-align: center; padding: 24px; box-sizing: border-box; }
+  svg { width: 120px; height: auto; display: block; margin: 0 auto 40px; }
+  h1 { font-weight: 300; font-size: clamp(2.2rem, 7vw, 5rem); letter-spacing: -.04em; margin: 0 0 28px; }
+  a { color: #fff; text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.5); padding-bottom: 4px; }
+  a:hover { border-color: #fff; }
+</style>
+</head>
+<body>
+<main>
+${V.markSVG()}
+<h1>Page not found</h1>
+<a id="home" href="/">Back to home</a>
+</main>
+<script>(function(){var s=${JSON.stringify(SUBFOLDERS)},p=location.pathname,b='/';for(var i=0;i<s.length;i++)if(p.indexOf(s[i])===0)b=s[i];document.getElementById('home').href=b;})();</script>
+</body>
+</html>
+`);
 
 const today = new Date().toISOString().slice(0, 10);
 write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
@@ -102,4 +137,4 @@ ${paths.map(p => {
 write('.nojekyll', '');
 write('robots.txt', `User-agent: *\nAllow: /\n\nSitemap: ${V.SITE_URL}/sitemap.xml\n`);
 
-console.log(`Built ${paths.length} pages${BASE ? ' for ' + BASE + '/' : ''} + 404, sitemap.xml, robots.txt (v${ver})`);
+console.log(`Built ${paths.length} pages + 404, sitemap.xml, robots.txt (v${ver})`);
