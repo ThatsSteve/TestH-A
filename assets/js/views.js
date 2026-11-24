@@ -41,12 +41,12 @@
   // The project that represents an area: the sharpest cover, first in list order on a tie
   const leadOf = slug => P.filter(p => inArea(p, slug)).sort((a, b) => (b.cover.w || 0) - (a.cover.w || 0))[0] || null;
   const featured = P.filter(p => p.order <= 3);
-  // The most recent additions (projects carry "added": "YYYY-MM"); the featured ones if none is dated
+  // The eight most recent additions (projects carry "added": "YYYY-MM" or "YYYY-MM-DD", newest first,
+  // list order on a tie); the featured ones if none is dated
   const latest = (() => {
     const dated = P.filter(p => p.added);
     if (!dated.length) return featured;
-    const last = dated.map(p => p.added).sort().pop();
-    return dated.filter(p => p.added === last);
+    return dated.map((p, i) => [p, i]).sort((a, b) => (b[0].added > a[0].added) - (b[0].added < a[0].added) || a[1] - b[1]).map(x => x[0]).slice(0, 8);
   })();
   const loc = p => p.facts.Location || '';
   const country = p => { const m = loc(p).match(/italy|china|korea/i); return m ? m[0][0].toUpperCase() + m[0].slice(1).toLowerCase() : ''; };

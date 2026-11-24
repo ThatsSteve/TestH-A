@@ -33,13 +33,35 @@ All links and assets are relative, so the same files work anywhere without rebui
 
 `404.html` is self-contained. If the site is published in another sub-folder, add it to `SUBFOLDERS` in `build.js` so the "Back to home" link points to the right place.
 
-## Adding a project
+## Studio dashboard (adding projects without code)
+
+`/studio-upload/` is a private page for the people who upload projects. It is not linked anywhere and is kept out of search engines; publishing needs a GitHub key with write access to this repository, so the page alone gives no access.
+
+How it works:
+
+1. The person signs in with their GitHub key, then adds, changes, duplicates or removes a project (title, areas, facts, description, map position, photos; the first photo is the cover).
+2. "Pubblica" sends one commit to `content/inbox/`: a JSON request plus the photos, resized in the browser (at most 3000 px, JPEG, location data removed).
+3. The workflow `.github/workflows/publish.yml` runs `tools/publish-inbox.js` (converts the photos to WebP in five sizes, updates `assets/js/data.js`, deletes photos no project uses any more, empties the inbox), then `node build.js`, and commits the result. That commit redeploys Netlify and GitHub Pages; the site is updated in 2–4 minutes.
+
+New projects get `"added"` with the date and appear first among the latest projects on the home page (the eight most recent are shown).
+
+Giving someone access:
+
+1. Add their GitHub account as a collaborator with write access (repository Settings › Collaborators).
+2. They create a key at github.com › Settings › Developer settings › Personal access tokens. A fine-grained key limited to this repository, with Contents "Read and write" (and Actions "Read-only" to see the publishing status), works when the repository belongs to them or to an organization they are in. For a repository owned by someone else's personal account, GitHub only allows a classic key with the `public_repo` scope; moving the repository to a studio organization avoids that.
+3. Send them the address `…/studio-upload/`. The help on the sign-in page explains the rest.
+
+The key stays in that browser only (session storage, or local storage if "Ricordami" is ticked, under `ha-dash`) and is sent only to api.github.com.
+
+For Aruba, add a final step to the workflow that uploads the site by FTP/SFTP, with the server, user and password saved as repository secrets.
+
+## Adding a project by hand
 
 1. Put the images in `assets/img/projects/<slug>/` as WebP: the full image (at most 2200 px wide) plus smaller copies named `<name>-<width>x<height>.webp` (480, 800, 1200 and 1600 px wide, only those smaller than the full image).
-2. Add the project to `projects` in `assets/js/data.js`: `slug`, `title`, `order` (1 to 3 puts it among the featured projects on the home page, 4 otherwise), `areas` (ids from `areas`), `facts` (`Location`, `Client`, `Tipology`, `Size`, `Status`, `Credits`; leave out what is not known), `desc` (one string per paragraph, the first one is the lead), `gallery`, `cover` and `geo` (`[latitude, longitude]` of the city). Each image is `{ "src": "/assets/img/projects/<slug>/<name>.webp", "w": …, "h": …, "v": ["-480x…", "-800x…"] }`.
+2. Add the project to `projects` in `assets/js/data.js`: `slug`, `title`, `order` (1 to 3 marks the featured projects used by the "Featured" sort, 4 otherwise), `added` (date added, `YYYY-MM` or `YYYY-MM-DD`: the eight most recent appear on the home page), `areas` (ids from `areas`), `facts` (`Location`, `Client`, `Tipology`, `Size`, `Status`, `Credits`; leave out what is not known), `desc` (one string per paragraph, the first one is the lead), `gallery`, `cover` and `geo` (`[latitude, longitude]` of the city). Each image is `{ "src": "/assets/img/projects/<slug>/<name>.webp", "w": …, "h": …, "v": ["-480x…", "-800x…"] }`.
 3. Run `node build.js`.
 
-The position in the `projects` list is the order used on the home page and in the project lists.
+The position in the `projects` list is the order used in the project lists.
 
 ## Notes
 
