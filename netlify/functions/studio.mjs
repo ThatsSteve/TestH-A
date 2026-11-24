@@ -3,8 +3,10 @@
 // It can only add files under content/inbox/; the GitHub workflow does the rest.
 // Optional: set STUDIO_CODE to require a password from the dashboard (no password while testing).
 
-const REPO = process.env.STUDIO_REPO || 'ThatsSteve/TestH-A';
-const BRANCH = process.env.STUDIO_BRANCH || 'main';
+// Settings: Netlify.env (Functions runtime) first, process.env as a fallback
+const env = k => { try { const v = globalThis.Netlify && globalThis.Netlify.env && globalThis.Netlify.env.get(k); if (v) return v; } catch (e) { /* not on Netlify */ } return process.env[k]; };
+const REPO = env('STUDIO_REPO') || 'ThatsSteve/TestH-A';
+const BRANCH = env('STUDIO_BRANCH') || 'main';
 const API = `https://api.github.com/repos/${REPO}`;
 const INBOX_PATH = /^content\/inbox\/\d{8}-\d{6}-[a-z0-9]+(?:-[a-z0-9]+)*(?:\.json|\/[\w-]+\.[a-z0-9]{2,5}(?:\.\d{3})?)$/i;
 
@@ -20,7 +22,7 @@ async function gh(path, opt = {}) {
   const r = await fetch(API + path, {
     method: opt.method || 'GET',
     headers: {
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+      Authorization: `Bearer ${env('GITHUB_TOKEN')}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
       'User-Agent': 'studio-dashboard',
@@ -83,10 +85,10 @@ async function commit(files, message) {
 export default async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return reply({ error: 'method' }, 405);
-  if (!process.env.GITHUB_TOKEN) return reply({ ready: false, error: 'not-configured' }, 503);
+  if (!env('GITHUB_TOKEN')) return reply({ ready: false, error: 'not-configured' }, 503);
   let body;
   try { body = await req.json(); } catch (e) { return reply({ error: 'bad-json' }, 400); }
-  if (process.env.STUDIO_CODE && body.code !== process.env.STUDIO_CODE) return reply({ error: 'code' }, 401);
+  if (env('STUDIO_CODE') && body.code !== env('STUDIO_CODE')) return reply({ error: 'code' }, 401);
   try {
     if (body.op === 'status') return reply(await status());
     if (body.op === 'blob') return reply(await blob(body.content));
