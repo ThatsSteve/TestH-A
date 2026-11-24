@@ -61,6 +61,8 @@
     firm: '/the-firm/',
     people: '/people/',
     contacts: '/contacts/',
+    books: '/books/',
+    news: '/news/',
     area: a => (a.parent ? `/area/${areaById[a.parent].slug}/${a.slug}/` : `/area/${a.slug}/`),
   };
 
@@ -102,6 +104,9 @@
   }
 
   /* -------------------------------------------------------------- chrome */
+  // The two sections next to the four areas
+  const MORE = [{ key: 'books', name: 'Books', href: U.books }, { key: 'news', name: 'News', href: U.news }];
+
   function header() {
     return withBase(`
     <header class="header">
@@ -125,6 +130,7 @@
               </div>
             </li>`;
             }).join('')}
+            ${MORE.map((m, i) => `<li class="area-nav area-nav--plain${i === 0 ? ' area-nav--first' : ''}"><a class="area-nav__a" href="${m.href}" data-top="${m.key}">${m.name}</a></li>`).join('')}
           </ul>
         </nav>
         <button class="header__burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span class="header__burger-l">Menu</span><span class="header__burger-i"><span></span><span></span></span></button>
@@ -135,6 +141,7 @@
         <nav class="menu__nav" aria-label="Menu">
           <ul class="menu__areas">
             ${tops.map((a, i) => `<li class="marea" data-k="${i}"><a class="marea__a" href="${U.area(a)}"><span class="ln"><span class="ln__in marea__t">${esc(a.name)}<sup class="marea__c">${countIn(a.slug)}</sup></span></span></a></li>`).join('')}
+            ${MORE.map((m, i) => `<li class="marea marea--more${i === 0 ? ' marea--first' : ''}"><a class="marea__a" href="${m.href}"><span class="ln"><span class="ln__in marea__t">${m.name}</span></span></a></li>`).join('')}
           </ul>
           <p class="menu__all"><a class="cta cta--light" href="${U.projects}"><span>All projects (${P.length})</span>${arrowSVG}</a></p>
           <ul class="menu__main">
@@ -249,16 +256,25 @@
           </a>
         </li>`;
         }).join('')}
+        ${MORE.map(m => `<li class="stage__item stage__item--more">
+          <a class="stage__a" href="${m.href}">
+            <span class="stage__txt">
+              <span class="stage__t"><span class="ln"><span class="ln__in">${m.name}</span></span></span>
+              <span class="stage__c">${(D[m.key] || []).length ? `${D[m.key].length} ${m.key === 'books' ? 'books' : 'articles'}` : 'Coming soon'}</span>
+            </span>
+          </a>
+        </li>`).join('')}
       </ol>
     </section>
 
     <section class="about" aria-labelledby="h-about">
       <div class="about__in wrap">
         <h1 class="about__lead" id="h-about" data-r="lines">${words(D.site.description)}</h1>
-        <div class="about__body">
+        <div class="about__body" id="about-body">
           ${about.map(t => `<p data-r="up">${esc(t)}</p>`).join('')}
           <div class="about__cta" data-r="up">${cta(U.firm, 'The Firm')}</div>
         </div>
+        <button class="about__more" type="button" aria-expanded="false" aria-controls="about-body">Read more</button>
       </div>
     </section>
 
@@ -642,6 +658,56 @@
     </section>`;
   }
 
+  // Books and News: a list once there are entries in the data (D.books, D.news), "coming soon" until then
+  function viewBooks() {
+    const list = D.books || [];
+    return `
+    <section class="phead wrap">
+      <h1 class="phead__title">${words('Books')}</h1>
+      <p class="phead__lead">The books written and published by H&amp;A Associati will be collected here.</p>
+    </section>
+    ${list.length ? `
+    <section class="shelf wrap" aria-label="Books">
+      <ul class="shelf__list">${list.map(b => `
+        <li class="shelf__item" data-r="up">
+          ${b.cover ? `<span class="shelf__img">${pic(b.cover, SZ.small, b.title)}</span>` : ''}
+          <h2 class="shelf__t">${b.href ? `<a href="${esc(b.href)}" target="_blank" rel="noopener">${esc(b.title)}</a>` : esc(b.title)}</h2>
+          <p class="shelf__m">${[b.year, b.publisher].filter(Boolean).map(esc).join(', ')}</p>
+          ${b.text ? `<p class="shelf__d">${esc(b.text)}</p>` : ''}
+        </li>`).join('')}
+      </ul>
+    </section>` : `
+    <section class="soon wrap" aria-label="Coming soon">
+      <p class="soon__t" data-r="lines">${words('Coming soon')}</p>
+      <p class="soon__note" data-r="up">We are preparing this section. In the meantime, browse the projects.</p>
+      <p class="soon__cta" data-r="up">${cta(U.projects, `All projects (${P.length})`)}</p>
+    </section>`}`;
+  }
+
+  function viewNews() {
+    const list = D.news || [];
+    const mail = D.site.contacts.mail;
+    return `
+    <section class="phead wrap">
+      <h1 class="phead__title">${words('News')}</h1>
+      <p class="phead__lead">Press articles about H&amp;A Associati and its projects, together with videos, will be collected here.</p>
+    </section>
+    ${list.length ? `
+    <section class="press wrap" aria-label="Press">
+      <ul class="press__list">${list.map(n => `
+        <li class="press__item" data-r="up">
+          <p class="press__m caps">${[n.date, n.source].filter(Boolean).map(esc).join(' – ')}</p>
+          <h2 class="press__t">${n.href ? `<a href="${esc(n.href)}" target="_blank" rel="noopener">${esc(n.title)}</a>` : esc(n.title)}</h2>
+          ${n.video ? `<video class="press__vid" src="${esc(n.video)}" controls playsinline preload="none"></video>` : ''}
+        </li>`).join('')}
+      </ul>
+    </section>` : `
+    <section class="soon wrap" aria-label="Coming soon">
+      <p class="soon__t" data-r="lines">${words('Coming soon')}</p>
+      <p class="soon__note" data-r="up">For press enquiries, write to <a href="mailto:${esc(mail)}">${esc(mail)}</a>.</p>
+    </section>`}`;
+  }
+
   function viewNotFound() {
     return `<section class="phead wrap nf"><h1 class="phead__title">${words('Page not found')}</h1><p class="phead__lead">${cta(U.home, 'Back to home')}</p></section>`;
   }
@@ -657,6 +723,8 @@
     if (parts[0] === 'the-firm') return { name: 'firm' };
     if (parts[0] === 'people') return { name: 'people' };
     if (parts[0] === 'contacts') return { name: 'contacts' };
+    if (parts[0] === 'books') return { name: 'books' };
+    if (parts[0] === 'news') return { name: 'news' };
     return { name: '404' };
   }
 
@@ -694,13 +762,17 @@
         return { ...base, html: withBase(viewPeople()), meta: { title: 'People | H&A Associati', description: `Partners and project team of H&A Associati: ${D.people[0].members.map(m => m.name).join(', ')} and over thirty architects and engineers.`.slice(0, 158), path: U.people, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['People', U.people]])] } };
       case 'contacts':
         return { ...base, html: withBase(viewContacts()), meta: { title: 'Contacts | H&A Associati', description: `Contact H&A Associati: ${D.site.contacts.mail}, ${D.site.contacts.tel}. Offices in ${D.site.offices.map(o => o.city).join(', ')}.`.slice(0, 158), path: U.contacts, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['Contacts', U.contacts]])] } };
+      case 'books':
+        return { ...base, html: withBase(viewBooks()), meta: { title: 'Books | H&A Associati', description: 'The books written and published by H&A Associati, architecture and engineering studio based in Venice and Shanghai.', path: U.books, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['Books', U.books]])] } };
+      case 'news':
+        return { ...base, html: withBase(viewNews()), meta: { title: 'News | H&A Associati', description: 'Press articles and videos about H&A Associati and its projects.', path: U.news, image: D.firm.hero.src, jsonld: [ORG, crumbs([['Home', '/'], ['News', U.news]])] } };
       default:
         return { ...base, html: withBase(viewNotFound()), meta: { title: 'Page not found | H&A Associati', description: D.site.description, path: '/404.html', image: abs(featured[0].cover.src), noindex: true, jsonld: [] } };
     }
   }
 
   function allPaths() {
-    return ['/', U.projects, U.firm, U.people, U.contacts]
+    return ['/', U.projects, U.firm, U.people, U.contacts, U.books, U.news]
       .concat(D.areas.filter(a => countIn(a.slug)).map(U.area))
       .concat(P.map(p => U.project(p.slug)));
   }

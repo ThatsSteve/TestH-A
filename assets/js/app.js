@@ -210,6 +210,16 @@
 
   /* -------------------------------------------------------------- home */
   function initHome() {
+    // Phones: the studio text starts folded, "Read more" opens it
+    const more = $('.about__more'), about = $('.about');
+    if (more && about) more.addEventListener('click', () => {
+      const open = about.classList.toggle('is-open');
+      more.setAttribute('aria-expanded', String(open));
+      more.textContent = open ? 'Read less' : 'Read more';
+      if (!open) scrollToEl(about);
+      if (window.ScrollTrigger) requestAnimationFrame(() => ScrollTrigger.refresh());
+    });
+
     const hero = $('.hero');
     const frame = $('.hero__frame');
     const canvas = $('.hero__canvas');
@@ -726,7 +736,8 @@
     let tops = [];
     if (r.name === 'projects' && r.route.area && areaBySlug[r.route.area]) tops = [topOf(areaBySlug[r.route.area]).slug];
     if (r.name === 'project' && projBySlug[r.route.slug]) tops = projBySlug[r.route.slug].areas.map(id => areaById[id]).filter(a => a && !a.parent).map(a => a.slug);
-    navActive(tops, r.name === 'projects' ? r.route.area : null);
+    if (r.name === 'books' || r.name === 'news') tops = [r.name];
+    navActive(tops, r.name === 'projects' ? r.route.area : tops[0] === r.name ? r.name : null);
     scrollTop();
     const init = { home: initHome, projects: () => initProjects(r.route), project: () => initProject(r.route), firm: initFirm, people: initPeople, contacts: initContacts }[r.name] || introTitle;
     fitTitles(main);
