@@ -129,22 +129,25 @@ body.menu-open .header__nav { visibility: hidden; opacity: 0; }
 /* the link fills the bar height, so the pointer can travel down to the panel without closing it */
 .area-nav__a { position: relative; display: flex; align-items: center; text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; font-weight: 400; white-space: nowrap; }
 .area-nav__a::after { content: ''; position: absolute; left: 0; right: 0; bottom: calc(50% - 15px); height: 1px; background: currentColor; transform: scaleX(0); transform-origin: right; transition: transform .45s var(--ease); }
-.area-nav__a:hover::after, .area-nav:has(:focus-visible) .area-nav__a::after, .area-nav__a.is-active::after { transform: scaleX(1); transform-origin: left; }
+.area-nav__a:hover::after, .area-nav.is-open .area-nav__a::after, .area-nav:has(:focus-visible) .area-nav__a::after, .area-nav__a.is-active::after { transform: scaleX(1); transform-origin: left; }
 .area-nav.is-shut .area-nav__a:not(.is-active)::after { transform: scaleX(0); }
 
-/* The panel of an area: its name, its categories and a project that changes with the pointer.
-   Opens on hover (mouse) or keyboard focus, never stays open after a click. */
+/* The panel of an area: its name and its categories.
+   Opened by the script (.is-open) when the pointer reaches an area, and kept open while the pointer
+   stays on the bar or on the panel; moving to another area swaps the panel at once, without a gap.
+   Keyboard focus opens it too; it never stays open after a click. */
 .mega {
   position: absolute; left: 0; right: 0; top: 100%;
   background: #fff; color: var(--navy); box-shadow: 0 40px 60px -40px rgba(2, 39, 83, .3);
   opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(-8px);
   transition: opacity .3s ease, transform .5s var(--ease-out), visibility 0s .5s;
 }
-.area-nav:hover .mega, .area-nav:has(:focus-visible) .mega { opacity: 1; visibility: visible; pointer-events: auto; transform: none; transition: opacity .3s ease, transform .5s var(--ease-out), visibility 0s; }
+.area-nav.is-open .mega, .area-nav:has(:focus-visible) .mega, html:not(.js) .area-nav:hover .mega { opacity: 1; visibility: visible; pointer-events: auto; transform: none; transition: opacity .3s ease, transform .5s var(--ease-out), visibility 0s; }
 .area-nav.is-shut .mega, .header.is-hidden .mega, body.menu-open .mega { opacity: 0; visibility: hidden; pointer-events: none; transition: none; }
+.header.mega-swap .mega { transition: none; }
 /* while a panel is open the bar turns white, so panel and bar read as one surface */
-.header:has(.area-nav:not(.is-shut):hover), .header:has(.area-nav :focus-visible) { background: #fff; color: var(--navy); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
-.header:has(.area-nav:not(.is-shut):hover) .header__logo svg { outline: 0; }
+.header.has-mega, .header:has(.area-nav :focus-visible) { background: #fff; color: var(--navy); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.header.has-mega .header__logo svg { outline: 0; }
 .mega__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr) minmax(0, 1fr); gap: clamp(28px, 3.4vw, 64px); align-items: start; padding-block: clamp(28px, 3.4vw, 52px) clamp(36px, 4vw, 64px); }
 .mega__head { display: grid; gap: 12px; align-content: start; }
 .mega__t { font-size: clamp(2.4rem, 4.6vw, 5.2rem); line-height: .95; letter-spacing: -.045em; font-weight: 300; color: var(--navy); }
@@ -268,7 +271,7 @@ body.menu-open .header__burger-i span:nth-child(2) { transform: rotate(-45deg); 
 /* round arrow buttons (hero and carousels) */
 .car__btn { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: var(--navy); background: rgba(255, 255, 255, .7); border: 1px solid rgba(2, 39, 83, .14); box-shadow: inset 0 1px 0 #fff, 0 10px 26px -14px rgba(2, 39, 83, .5); -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6); transition: border-color .3s, background-color .3s, color .3s, opacity .3s, transform .4s var(--ease-out); }
 .car__btn svg { width: 18px; height: 18px; }
-.car__prev svg, .hero__prev svg, .pview__prev svg { transform: rotate(180deg); }
+.car__prev svg, .hero__prev svg { transform: rotate(180deg); }
 .car__btn:hover:not(:disabled) { border-color: var(--navy); background: var(--navy); color: #fff; }
 .car__btn:active:not(:disabled) { transform: scale(.94); }
 .car__btn:disabled { opacity: .35; cursor: default; }
@@ -576,7 +579,23 @@ body.menu-open .header__burger-i span:nth-child(2) { transform: rotate(-45deg); 
 .proj__text { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: 32px; padding-block: clamp(64px, 9vw, 140px); }
 .proj__lead { grid-column: 1 / span 6; font-size: clamp(1.4rem, 2.3vw, 2.4rem); line-height: 1.22; letter-spacing: -.02em; color: var(--navy); font-weight: 300; }
 .proj__body { grid-column: 8 / span 5; display: grid; gap: 1.1em; align-content: start; }
-.gal { position: relative; padding-top: clamp(64px, 8vw, 130px); padding-bottom: clamp(56px, 7vw, 110px); }
+.gal { position: relative; isolation: isolate; overflow-x: clip; padding-top: clamp(64px, 8vw, 130px); padding-bottom: clamp(56px, 7vw, 110px); }
+/* Gallery on a drafting sheet, as in the studio text: grid across the page, a construction drawing
+   that turns very slowly near the top (only transform is animated; still for reduced motion) */
+.gal::before { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(2, 39, 83, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2, 39, 83, .05) 1px, transparent 1px),
+    linear-gradient(rgba(2, 39, 83, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2, 39, 83, .025) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-position: center top;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent); }
+.gal::after { content: ''; position: absolute; z-index: -1; pointer-events: none; top: clamp(-40px, -2vw, 0px); right: max(-14vw, -220px); width: min(760px, 86vw); aspect-ratio: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='760' height='760' viewBox='0 0 760 760' fill='none' stroke='%23022753' stroke-opacity='.09' stroke-width='1'%3E%3Ccircle cx='380' cy='380' r='300'/%3E%3Ccircle cx='380' cy='380' r='180' stroke-dasharray='6 8'/%3E%3Crect x='170' y='170' width='420' height='420'/%3E%3Cpath d='M0 380H760M380 0V760M80 80L680 680M680 80L80 680'/%3E%3Cpath d='M170 640H590M170 630V650M590 630V650' /%3E%3Cpath d='M640 170V590M630 170H650M630 590H650'/%3E%3Cpath d='M380 80A300 300 0 0 1 680 380' stroke-width='2' stroke-opacity='.12'/%3E%3C/svg%3E") center / contain no-repeat; opacity: .9; will-change: transform; }
+@media (prefers-reduced-motion: no-preference) { .gal::after { animation: drafting-turn 240s linear infinite; } }
+@keyframes drafting-turn { to { transform: rotate(360deg); } }
 .gal__title { margin-bottom: clamp(32px, 4vw, 64px); }
 .gal__sup { font-size: .3em; color: var(--muted); letter-spacing: 0; vertical-align: top; position: relative; top: .4em; margin-left: .3em; font-variant-numeric: tabular-nums; }
 .gal__list { display: grid; gap: clamp(48px, 7vw, 120px); }
@@ -698,35 +717,47 @@ button.member__open:hover .member__ph img { opacity: .88; }
 .member__more svg { width: 16px; height: 16px; transition: transform .3s var(--ease-out); }
 button.member__open:hover .member__more svg, button.member__open:focus-visible .member__more svg { transform: translateX(4px); }
 
-/* Person profile: a dedicated full-screen page */
-/* Profiles: one full screen per person, side by side, each scrolling on its own */
+/* Profiles: one full screen per person, side by side, each scrolling on its own.
+   The controls float together at the bottom in a glass bar: Back, the position, Previous and Next. */
 .pview { position: fixed; inset: 0; z-index: 650; display: flex; flex-direction: column; background: var(--paper); }
-.pview__bar { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; height: 76px; }
-.pview__back { display: inline-flex; align-items: center; gap: 14px; text-transform: uppercase; letter-spacing: .14em; font-size: .75rem; color: var(--navy); }
-.pview__back .glass { width: 44px; height: 44px; }
-.pview__nav { display: flex; align-items: center; gap: 10px; }
-.pview__count { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 8px; }
-.pview__prev svg { transform: rotate(180deg); }
-.pview .glass { border-color: rgba(2, 39, 83, .14); }
-.pview .glass:disabled { opacity: .35; cursor: default; }
-.pview button.glass:disabled:hover { --gb: rgba(255, 255, 255, .62); color: var(--navy); }
 .pview__track { flex: 1; min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior: contain; scrollbar-width: none; }
 .pview__track::-webkit-scrollbar { display: none; }
 .pslide { flex: 0 0 100%; min-width: 0; height: 100%; overflow-y: auto; overscroll-behavior: contain; scroll-snap-align: start; scroll-snap-stop: always; }
-.pslide__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 100px); align-items: start; padding-block: clamp(16px, 3vw, 48px) clamp(48px, 7vw, 110px); }
-.pslide__ph { position: sticky; top: 0; aspect-ratio: 4 / 5; max-height: calc(100svh - 76px - 64px); max-width: 560px; overflow: hidden; background: var(--mist); }
+.pslide__in { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 100px); align-items: start; padding-block: clamp(32px, 6vh, 72px) 140px; }
+.pslide__ph { position: sticky; top: clamp(32px, 6vh, 72px); aspect-ratio: 4 / 5; max-height: calc(100svh - 220px); max-width: 560px; overflow: hidden; background: var(--mist); }
 .pslide__ph img { width: 100%; height: 100%; object-fit: cover; }
 .pslide__role { text-transform: uppercase; letter-spacing: .14em; font-size: .72rem; color: var(--muted); }
 .pslide__name { margin-top: 14px; font-size: clamp(2.6rem, 6.4vw, 7rem); line-height: .95; letter-spacing: -.05em; color: var(--navy); font-weight: 300; }
 .pslide__bio { margin-top: clamp(28px, 3.4vw, 52px); display: grid; gap: 1.1em; max-width: 62ch; font-size: clamp(1rem, .95rem + .3vw, 1.18rem); line-height: 1.75; }
 .pslide__bio p:first-child { color: var(--navy); font-size: clamp(1.15rem, 1.5vw, 1.5rem); line-height: 1.5; }
+
+.pdock { position: fixed; z-index: 2; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; padding: 6px; max-width: calc(100% - 24px); border-radius: 999px;
+  background: rgba(255, 255, 255, .72); border: 1px solid rgba(2, 39, 83, .12);
+  box-shadow: 0 18px 40px -18px rgba(2, 39, 83, .35), inset 0 1px 0 rgba(255, 255, 255, .9); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .pdock { background: rgba(255, 255, 255, .55); -webkit-backdrop-filter: blur(20px) saturate(1.8); backdrop-filter: blur(20px) saturate(1.8); }
+}
+.pdock__btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; color: var(--navy); font-size: .92rem; white-space: nowrap; transition: background .25s ease, color .25s ease, opacity .25s ease; }
+.pdock__btn svg { width: 16px; height: 16px; flex: none; }
+.pdock__btn:hover { background: rgba(2, 39, 83, .07); }
+.pdock__btn--main { background: var(--navy); color: #fff; }
+.pdock__btn--main:hover { background: #123a70; }
+.pdock__btn:disabled { opacity: .35; cursor: default; background: none; }
+.pdock__btn--main:disabled { background: var(--navy); }
+.pdock__back { padding-left: 14px; }
+.pdock__back svg { transform: rotate(180deg); }
+.pdock__count { padding: 0 10px; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; border-left: 1px solid rgba(2, 39, 83, .14); border-right: 1px solid rgba(2, 39, 83, .14); }
 @media (max-width: 860px) {
-  .pview__bar { height: 64px; }
-  .pview__back span:last-child { display: none; }
-  .pslide__in { grid-template-columns: minmax(0, 1fr); }
+  .pslide__in { grid-template-columns: minmax(0, 1fr); padding-bottom: 120px; }
   .pslide__ph { position: static; max-width: 360px; width: 72%; max-height: none; }
 }
+@media (max-width: 420px) {
+  .pdock { gap: 2px; }
+  .pdock__btn { padding: 0 13px; font-size: .86rem; }
+  .pdock__count { padding: 0 6px; font-size: .76rem; }
 }
+@media (max-width: 340px) { .pdock__back span { display: none; } }
 
 /* Contacts page */
 .ct { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: 32px; padding-bottom: clamp(56px, 7vw, 110px); }

@@ -144,12 +144,35 @@
     page.closeMenu = instant => open && set(false, instant);
   }
 
+  // Area panels: the pointer on an area opens its panel; the panel stays while the pointer is on
+  // the bar or on the panel, and moving to another area swaps it at once (no closing in between).
+  // Books and News have no panel: reaching them closes it. Leaving the header closes it.
   function initAreaNav() {
+    const hdr = $('.header');
+    if (!hdr) return;
+    let open = null, closeT = null;
+    const set = li => {
+      clearTimeout(closeT);
+      if (li === open) return;
+      const swap = !!(open && li);
+      hdr.classList.toggle('mega-swap', swap);
+      if (open) open.classList.remove('is-open');
+      open = li;
+      if (li) li.classList.add('is-open');
+      hdr.classList.toggle('has-mega', !!li);
+      if (swap) requestAnimationFrame(() => requestAnimationFrame(() => hdr.classList.remove('mega-swap')));
+    };
+    page.closeMega = () => set(null);
     $$('.area-nav').forEach(li => {
+      const hasPanel = !!$('.mega', li);
+      li.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !li.classList.contains('is-shut')) set(hasPanel ? li : null); });
       li.addEventListener('pointerleave', () => li.classList.remove('is-shut'));
       // A click (or tap) on the area or a category closes the panel at once
-      li.addEventListener('click', e => { if (!e.target.closest('a')) return; li.classList.add('is-shut'); if (document.activeElement && li.contains(document.activeElement)) document.activeElement.blur(); });
+      li.addEventListener('click', e => { if (!e.target.closest('a')) return; set(null); li.classList.add('is-shut'); if (document.activeElement && li.contains(document.activeElement)) document.activeElement.blur(); });
     });
+    hdr.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') closeT = setTimeout(() => set(null), 140); });
+    hdr.addEventListener('pointerenter', () => clearTimeout(closeT));
+    addEventListener('keydown', e => { if (e.key === 'Escape' && open) set(null); });
   }
 
   /* ============================================================= PAGES */
@@ -602,14 +625,6 @@
       el.setAttribute('aria-label', 'People');
       el.setAttribute('data-lenis-prevent', '');
       el.innerHTML = `
-        <div class="pview__bar wrap">
-          <button type="button" class="pview__back"><span class="glass" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="transform:rotate(180deg)"><path d="M3 12h17M14 5l7 7-7 7"/></svg></span><span>People</span></button>
-          <div class="pview__nav">
-            <span class="pview__count" aria-live="polite"></span>
-            <button type="button" class="glass pview__prev" aria-label="Previous person">${ARROW}</button>
-            <button type="button" class="glass pview__next" aria-label="Next person">${ARROW}</button>
-          </div>
-        </div>
         <div class="pview__track">${list.map((m, i) => `
           <article class="pslide" aria-label="${V.esc(m.name)}" data-i="${i}">
             <div class="pslide__in wrap">
@@ -621,13 +636,19 @@
               </div>
             </div>
           </article>`).join('')}
+        </div>
+        <div class="pdock" role="toolbar" aria-label="Profiles">
+          <button type="button" class="pdock__btn pdock__back" aria-label="Back to People">${ARROW}<span>Back</span></button>
+          <span class="pdock__count" aria-live="polite"></span>
+          <button type="button" class="pdock__btn pdock__prev">Previous</button>
+          <button type="button" class="pdock__btn pdock__btn--main pdock__next">Next</button>
         </div>`;
       document.body.appendChild(el);
       track = $('.pview__track', el);
       slides = $$('.pslide', el);
-      $('.pview__back', el).addEventListener('click', () => close());
-      $('.pview__prev', el).addEventListener('click', () => go(idx - 1));
-      $('.pview__next', el).addEventListener('click', () => go(idx + 1));
+      $('.pdock__back', el).addEventListener('click', () => close());
+      $('.pdock__prev', el).addEventListener('click', () => go(idx - 1));
+      $('.pdock__next', el).addEventListener('click', () => go(idx + 1));
       addEventListener('keydown', e => {
         if (!isOpen) return;
         if (e.key === 'Escape') close();
@@ -640,19 +661,20 @@
     }
     function settle(i) {
       idx = i;
-      $('.pview__count', el).textContent = `${pad(i + 1)} / ${pad(slides.length)}`;
-      $('.pview__prev', el).disabled = i === 0;
-      $('.pview__next', el).disabled = i === slides.length - 1;
+      $('.pdock__count', el).textContent = `${pad(i + 1)} / ${pad(slides.length)}`;
+      $('.pdock__prev', el).disabled = i === 0;
+      $('.pdock__next', el).disabled = i === slides.length - 1;
       const s = slides[i];
       if (!ANIM || seen.has(s)) return;
       seen.add(s);
+      // a quiet entrance: the photo settles, the text fades up a little
       gsap.timeline()
-        .fromTo($('.pslide__ph', s), { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.2, ease: 'expo.out' }, 0)
-        .fromTo($$('.pslide__name .wm__in', s), { yPercent: 110 }, { yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.06 }, 0.1)
-        .fromTo($$('.pslide__role, .pslide__bio p', s), { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out', stagger: 0.04 }, 0.25);
+        .fromTo($('.pslide__ph', s), { opacity: 0, scale: 1.015 }, { opacity: 1, scale: 1, duration: 0.9, ease: 'power2.out', clearProps: 'transform' }, 0)
+        .fromTo($$('.pslide__role, .pslide__name, .pslide__bio p', s), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out', stagger: 0.035 }, 0.12);
     }
     function go(i, instant) {
       if (i < 0 || i >= slides.length) return;
+      settle(i); // the position and the buttons follow at once, also on quick repeated clicks
       track.scrollTo({ left: slides[i].offsetLeft, behavior: instant || reduced ? 'auto' : 'smooth' });
     }
     function open(list, i) {
@@ -661,15 +683,19 @@
       el.hidden = false; isOpen = true; lock(true);
       go(i, true); settle(i);
       try { history.pushState(Object.assign({}, history.state, { person: 1 }), '', location.href); pushed = true; } catch (e) { pushed = false; }
-      if (ANIM) gsap.fromTo(el, { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.8, ease: 'expo.inOut', clearProps: 'clipPath' });
-      $('.pview__back', el).focus({ preventScroll: true });
+      // opens with a short fade, the controls rising into place
+      if (ANIM) {
+        gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power1.out', clearProps: 'opacity' });
+        gsap.fromTo($('.pdock', el), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, delay: 0.15, ease: 'power2.out', clearProps: 'opacity,transform' });
+      }
+      $('.pdock__back', el).focus({ preventScroll: true });
     }
     function close(fromHistory) {
       if (!isOpen) return;
       if (pushed && !fromHistory) { pushed = false; history.back(); return; }
       pushed = false; isOpen = false;
       const done = () => { el.hidden = true; lock(false); lastFocus && lastFocus.focus({ preventScroll: true }); };
-      if (ANIM) gsap.to(el, { clipPath: 'inset(0% 0% 100% 0%)', duration: 0.6, ease: 'expo.inOut', onComplete: () => { done(); gsap.set(el, { clearProps: 'clipPath' }); } }); else done();
+      if (ANIM) gsap.to(el, { opacity: 0, duration: 0.3, ease: 'power1.in', onComplete: () => { done(); gsap.set(el, { clearProps: 'opacity' }); } }); else done();
     }
     function destroy() { if (io) io.disconnect(); if (el) el.remove(); el = null; slides = []; isOpen = false; }
     return { open, close, destroy, handlePop() { if (!isOpen) return false; close(true); return true; }, get isOpen() { return isOpen; } };
