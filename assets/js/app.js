@@ -566,7 +566,7 @@
     page.cleanup.push(() => { io.disconnect(); io2.disconnect(); });
     if (!ANIM) return;
     items.forEach(it => {
-      const btn = $('.gal__btn', it), cap = $('.gal__cap', it);
+      const btn = $('.gal__btn, .gal__vid', it), cap = $('.gal__cap', it);
       gsap.set(btn, { opacity: 0, y: 60 });
       gsap.set(cap, { opacity: 0 });
       ScrollTrigger.create({ trigger: it, start: 'top 90%', once: true, onEnter: () => {

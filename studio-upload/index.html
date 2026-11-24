@@ -14,7 +14,7 @@
   @font-face { font-family: 'Rubik'; font-display: swap; font-weight: 400; src: url(../assets/fonts/rubik-latin-ext-400-normal.woff2) format('woff2'); unicode-range: U+0100-024F, U+1E00-1EFF; }
   :root {
     --navy: #022753; --navy-2: #123a70; --ink: #1e1e1e; --text: #474747; --muted: #6b6b6b;
-    --line: #d6d9de; --mist: #f2f3f5; --paper: #fff; --ok: #1d6b3a; --err: #a4231b;
+    --line: #d6d9de; --mist: #f2f3f5; --paper: #fff; --ok: #1d6b3a; --ok-bg: #e8f3ec; --err: #a4231b; --err-bg: #f8e9e7;
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -22,6 +22,7 @@
   button, input, select, textarea { font: inherit; color: inherit; }
   button { cursor: pointer; background: none; border: 0; padding: 0; }
   img { display: block; max-width: 100%; }
+  a { color: var(--navy); }
   [hidden] { display: none !important; }
   :focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -33,29 +34,23 @@
   .btn:hover { background: var(--mist); }
   .btn--go { background: var(--navy); color: #fff; }
   .btn--go:hover { background: var(--navy-2); }
+  .btn--big { min-height: 54px; padding: 0 30px; font-size: 1.08rem; }
   .btn--quiet { border-color: var(--line); color: var(--text); }
   .btn--danger { border-color: var(--line); color: var(--err); }
   .btn[disabled] { opacity: .45; cursor: default; }
+  .link { color: var(--navy); text-decoration: underline; text-underline-offset: 3px; min-height: 32px; }
   .f { display: grid; gap: 6px; }
-  .f > span { color: var(--ink); font-size: .95rem; }
-  .f small, .hint { color: var(--muted); font-size: .88rem; }
-  .f input, .f textarea, .f select { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 0; background: var(--paper); color: var(--ink); }
+  .f > span { color: var(--ink); }
+  .f > span i { font-style: normal; color: var(--muted); }
+  .f small, .hint { color: var(--muted); font-size: .9rem; }
+  .f input, .f textarea, .f select { width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 0; background: var(--paper); color: var(--ink); }
   .f input:hover, .f textarea:hover, .f select:hover { border-color: #b4bac3; }
   .f input:focus-visible, .f textarea:focus-visible, .f select:focus-visible { outline: 2px solid var(--navy); outline-offset: -1px; border-color: var(--navy); }
-  .f textarea { min-height: 240px; resize: vertical; line-height: 1.6; }
+  .f textarea { min-height: 220px; resize: vertical; line-height: 1.6; }
   .f [aria-invalid="true"] { border-color: var(--err); }
-
-  /* Sign in */
-  .gate { min-height: 100svh; display: grid; place-items: center; padding: 32px 16px; background: var(--mist); }
-  .gate__box { width: min(560px, 100%); background: var(--paper); padding: clamp(28px, 5vw, 56px); display: grid; gap: 22px; }
-  .gate__logo { width: 56px; height: auto; }
-  .gate h1 { font-size: clamp(2rem, 5vw, 2.8rem); }
-  .gate details { color: var(--text); font-size: .95rem; }
-  .gate summary { cursor: pointer; color: var(--navy); min-height: 32px; }
-  .gate ol { margin: 10px 0 0; padding-left: 1.2em; display: grid; gap: 6px; }
-  .gate a { color: var(--navy); }
-  .check { display: flex; gap: 10px; align-items: center; min-height: 32px; color: var(--ink); }
-  .check input { width: 18px; height: 18px; accent-color: var(--navy); margin: 0; }
+  .f--title input { min-height: 60px; font-size: clamp(1.3rem, 2.2vw, 1.7rem); font-weight: 300; color: var(--navy); }
+  .check { display: flex; gap: 10px; align-items: center; min-height: 36px; color: var(--ink); cursor: pointer; }
+  .check input { width: 20px; height: 20px; accent-color: var(--navy); margin: 0; flex: none; }
 
   /* Workspace */
   .app { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); min-height: 100svh; }
@@ -63,9 +58,7 @@
   .side__top { display: flex; align-items: center; gap: 12px; }
   .side__top img { width: 34px; }
   .side__top h1 { font-size: 1.35rem; letter-spacing: -.02em; }
-  .side__who { margin-left: auto; color: var(--muted); font-size: .85rem; text-align: right; }
-  .side__who button { color: var(--navy); text-decoration: underline; font-size: .85rem; }
-  .side__search input { min-height: 42px; }
+  .side__search input { min-height: 44px; }
   .list { flex: 1; min-height: 0; overflow-y: auto; margin: 0 -8px; padding: 0; list-style: none; }
   .list button { width: 100%; display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 12px; align-items: center; padding: 7px 8px; text-align: left; }
   .list button:hover { background: rgba(255, 255, 255, .7); }
@@ -76,44 +69,53 @@
   .list .busy small { color: var(--navy); }
   .side__count { color: var(--muted); font-size: .85rem; }
 
-  .main { padding: clamp(24px, 4vw, 56px) clamp(16px, 4vw, 64px) 120px; min-width: 0; }
+  .main { padding: clamp(24px, 4vw, 56px) clamp(16px, 4vw, 64px) 40px; min-width: 0; }
   .main__in { max-width: 980px; }
-  .status { display: flex; align-items: baseline; gap: 12px; padding: 14px 18px; margin-bottom: 32px; background: var(--mist); color: var(--ink); font-size: .95rem; }
-  .status[data-tone="ok"] { background: #e8f3ec; }
-  .status[data-tone="err"] { background: #f8e9e7; color: var(--err); }
+  .status { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 14px 18px; margin-bottom: 32px; background: var(--mist); color: var(--ink); }
+  .status[data-tone="ok"] { background: var(--ok-bg); }
+  .status[data-tone="err"] { background: var(--err-bg); color: var(--err); }
   .status__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--navy); flex: none; transform: translateY(-1px); }
   .status[data-tone="busy"] .status__dot { animation: pulse 1.4s ease-in-out infinite; }
   .status[data-tone="ok"] .status__dot { background: var(--ok); }
   .status[data-tone="err"] .status__dot { background: var(--err); }
+  .status__text { flex: 1 1 240px; }
   @keyframes pulse { 50% { opacity: .25; } }
-  .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; margin-bottom: 36px; }
+  .head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; margin-bottom: 32px; }
   .head h2 { font-size: clamp(2.2rem, 4.6vw, 3.8rem); max-width: 16ch; overflow-wrap: anywhere; }
   .head__acts { display: flex; flex-wrap: wrap; gap: 10px; }
 
-  .block { margin-bottom: 44px; }
-  .block > h3 { font-size: 1.55rem; margin-bottom: 18px; }
+  .block { margin-bottom: 48px; }
+  .block > h3 { font-size: 1.6rem; margin-bottom: 8px; }
+  .block > .hint { margin-bottom: 18px; max-width: 64ch; }
   .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; }
   .grid2 .wide { grid-column: 1 / -1; }
   .areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px 24px; }
   .areas .top { color: var(--ink); font-weight: 500; }
-  .areas .sub { padding-left: 28px; }
+  .areas .sub { padding-left: 30px; }
+  .addr { margin-top: 10px; color: var(--muted); font-size: .92rem; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+  .addr code { font: inherit; color: var(--ink); overflow-wrap: anywhere; }
 
-  .drop { display: grid; place-items: center; gap: 6px; min-height: 150px; padding: 24px; border: 1px dashed #9aa3ae; background: var(--mist); text-align: center; color: var(--ink); cursor: pointer; transition: background .2s, border-color .2s; }
-  .drop:hover, .drop.is-over { background: #e7ebf1; border-color: var(--navy); }
-  .drop b { font-weight: 400; color: var(--navy); font-size: 1.1rem; }
-  .pics { list-style: none; padding: 0; margin: 18px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
-  .pic { display: grid; gap: 6px; }
-  .pic__img { position: relative; aspect-ratio: 3 / 2; background: var(--mist); overflow: hidden; }
-  .pic__img img { width: 100%; height: 100%; object-fit: cover; }
-  .pic__tag { position: absolute; left: 0; top: 0; padding: 3px 9px; background: var(--navy); color: #fff; font-size: .78rem; }
-  .pic__meta { color: var(--muted); font-size: .82rem; }
-  .pic__acts { display: flex; gap: 4px; }
-  .pic__acts button { flex: 1; min-height: 38px; border: 1px solid var(--line); color: var(--navy); font-size: .85rem; }
-  .pic__acts button:hover { background: var(--mist); }
-  .pic__acts button[disabled] { opacity: .35; cursor: default; }
-  .pic__acts .x { color: var(--err); }
+  /* Photos and videos */
+  .drop { display: grid; place-items: center; gap: 8px; min-height: 180px; padding: 28px 20px; border: 1px dashed #8e98a5; background: var(--mist); text-align: center; color: var(--ink); cursor: pointer; transition: background .2s, border-color .2s; }
+  .drop:hover, .drop.is-over { background: #e5eaf1; border-color: var(--navy); }
+  .drop:focus-within { outline: 2px solid var(--navy); outline-offset: 2px; }
+  .drop b { font-weight: 400; color: var(--navy); font-size: 1.2rem; }
+  .media { list-style: none; padding: 0; margin: 18px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+  .m { display: grid; gap: 6px; align-content: start; }
+  .m__img { position: relative; aspect-ratio: 3 / 2; background: #e3e6ea; overflow: hidden; display: grid; place-items: center; color: var(--muted); font-size: .85rem; text-align: center; padding: 0; }
+  .m__img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .m__tag { position: absolute; left: 0; top: 0; padding: 3px 9px; background: var(--navy); color: #fff; font-size: .78rem; z-index: 1; }
+  .m__play { position: absolute; right: 8px; bottom: 8px; padding: 2px 8px; background: rgba(2, 39, 83, .85); color: #fff; font-size: .78rem; z-index: 1; }
+  .m__meta { color: var(--muted); font-size: .84rem; line-height: 1.35; }
+  .m__meta b { font-weight: 400; color: var(--ok); }
+  .m__meta .wait { color: var(--navy); }
+  .m__acts { display: flex; gap: 4px; }
+  .m__acts button { flex: 1; min-height: 40px; border: 1px solid var(--line); color: var(--navy); font-size: .85rem; }
+  .m__acts button:hover { background: var(--mist); }
+  .m__acts button[disabled] { opacity: .35; cursor: default; }
+  .m__acts .x { color: var(--err); }
 
-  .bar { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 16px 0; margin-top: 12px; background: rgba(255, 255, 255, .96); }
+  .bar { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 16px 0 18px; margin-top: 8px; background: rgba(255, 255, 255, .97); }
   .bar .msg { flex: 1 1 260px; color: var(--ink); }
   .bar .msg.err { color: var(--err); }
 
@@ -125,47 +127,21 @@
   @media (max-width: 880px) {
     .app { grid-template-columns: minmax(0, 1fr); }
     .side { position: static; height: auto; }
-    .list { flex: none; max-height: 40svh; }
+    .list { flex: none; max-height: 36svh; }
     .grid2 { grid-template-columns: minmax(0, 1fr); }
-    .pics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .media { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .bar .btn--big { width: 100%; }
   }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
 
-<!-- Sign in -->
-<main class="gate" id="gate" hidden>
-  <form class="gate__box" id="gateForm" novalidate>
-    <img class="gate__logo" src="../assets/img/logo.svg" alt="H&amp;A Associati">
-    <h1>Studio dashboard</h1>
-    <p>Da qui si aggiungono, modificano e tolgono i progetti del sito. Le foto vengono ottimizzate da sole e il sito si aggiorna in pochi minuti.</p>
-    <label class="f"><span>Chiave di accesso GitHub</span>
-      <input type="password" id="token" autocomplete="off" spellcheck="false" required aria-describedby="gateMsg">
-    </label>
-    <label class="check"><input type="checkbox" id="remember"> Ricordami su questo computer</label>
-    <button class="btn btn--go" type="submit">Entra</button>
-    <p class="hint" id="gateMsg" role="alert"></p>
-    <details>
-      <summary>Come ottengo la chiave?</summary>
-      <ol>
-        <li>Serve un account GitHub abilitato a modificare il sito: chiedilo a chi gestisce il sito.</li>
-        <li>Apri <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com › Settings › Fine-grained tokens</a>.</li>
-        <li>Dai un nome (es. "Dashboard sito"), scegli una scadenza e in <em>Repository access</em> seleziona solo il repository del sito.</li>
-        <li>In <em>Permissions</em> imposta <em>Contents</em> su <em>Read and write</em> e, se vuoi vedere lo stato della pubblicazione, <em>Actions</em> su <em>Read-only</em>.</li>
-        <li>Crea la chiave, copiala e incollala qui. Non condividerla con nessuno.</li>
-      </ol>
-    </details>
-  </form>
-</main>
-
-<!-- Workspace -->
-<div class="app" id="app" hidden>
+<div class="app" id="app">
   <aside class="side" aria-label="Progetti">
     <div class="side__top">
       <img src="../assets/img/logo.svg" alt="">
       <h1>Progetti</h1>
-      <div class="side__who"><span id="who"></span><br><button type="button" id="logout">Esci</button></div>
     </div>
     <button class="btn btn--go" type="button" id="newBtn">Nuovo progetto</button>
     <label class="f side__search"><span class="sr">Cerca un progetto</span><input type="search" id="search" placeholder="Cerca per nome o luogo"></label>
@@ -176,7 +152,7 @@
 
   <main class="main">
     <div class="main__in">
-      <div class="status" id="status" role="status" aria-live="polite"><span class="status__dot"></span><span id="statusText">Caricamento…</span></div>
+      <div class="status" id="status" role="status" aria-live="polite"><span class="status__dot"></span><span class="status__text" id="statusText">Caricamento…</span><a id="statusLink" target="_blank" rel="noopener" hidden>Apri la pagina del progetto</a></div>
 
       <form id="form" novalidate>
         <div class="head">
@@ -188,55 +164,63 @@
           </div>
         </div>
 
-        <section class="block">
-          <h3>Nome</h3>
-          <div class="grid2">
-            <label class="f"><span>Titolo</span><input name="title" required maxlength="160" autocomplete="off"></label>
-            <label class="f"><span>Indirizzo della pagina</span><input name="slug" required maxlength="90" autocomplete="off" spellcheck="false" pattern="[a-z0-9]+(-[a-z0-9]+)*">
-              <small id="slugHint">Creato dal titolo: solo lettere minuscole, numeri e trattini.</small></label>
-          </div>
+        <section class="block" aria-labelledby="h1b">
+          <h3 id="h1b">1. Nome del progetto</h3>
+          <label class="f f--title"><span class="sr">Nome del progetto</span><input name="title" required maxlength="160" autocomplete="off" placeholder="Es. Hotel Palazzina G"></label>
+          <p class="addr"><span>Indirizzo della pagina: <code id="addrText">/projects/…/</code></span><button type="button" class="link" id="addrEdit">Cambia</button></p>
+          <label class="f" id="slugBox" hidden><span>Indirizzo della pagina</span><input name="slug" maxlength="90" autocomplete="off" spellcheck="false">
+            <small id="slugHint">Solo lettere minuscole, numeri e trattini.</small></label>
         </section>
 
-        <section class="block">
-          <h3>Aree</h3>
-          <div class="areas" id="areas"></div>
+        <section class="block" aria-labelledby="h2b">
+          <h3 id="h2b">2. Foto e video</h3>
+          <p class="hint">Puoi caricare qualsiasi foto (anche dal telefono, compresi i formati HEIC e TIFF) e video. Vengono convertiti e ridimensionati da soli: foto in WebP, video in MP4 leggero. La prima foto è la copertina.</p>
+          <label class="drop" id="drop">
+            <b>Trascina qui foto e video</b>
+            <span>oppure fai clic per sceglierli dal computer</span>
+            <input class="sr" type="file" id="files" accept="image/*,video/*,.heic,.heif,.tif,.tiff,.mov,.mp4,.m4v,.webm" multiple>
+          </label>
+          <ul class="media" id="media" aria-label="Foto e video del progetto"></ul>
         </section>
 
-        <section class="block">
-          <h3>Scheda</h3>
+        <section class="block" aria-labelledby="h3b">
+          <h3 id="h3b">3. Dove si trova</h3>
           <div class="grid2">
-            <label class="f"><span>Luogo, come appare sul sito</span><input name="Location" required maxlength="200" placeholder="Venice, Italy"></label>
-            <label class="f"><span>Posizione sulla mappa</span><select name="place" id="place"></select></label>
+            <label class="f"><span>Luogo, come appare sul sito</span><input name="Location" required maxlength="200" placeholder="Es. Venice, Italy" autocomplete="off"></label>
+            <label class="f"><span>Punto sulla mappa</span><select name="place" id="place"></select><small>Si sceglie da solo quando scrivi una città già usata.</small></label>
             <div class="grid2 wide" id="coords" hidden>
               <label class="f"><span>Latitudine</span><input name="lat" inputmode="decimal" placeholder="45.4408"></label>
               <label class="f"><span>Longitudine</span><input name="lng" inputmode="decimal" placeholder="12.3155"><small>Su Google Maps: clic destro sul punto, poi clic sui numeri per copiarli.</small></label>
             </div>
+          </div>
+        </section>
+
+        <section class="block" aria-labelledby="h4b">
+          <h3 id="h4b">4. Area</h3>
+          <p class="hint">Scegli una o più aree; se scegli una sottocategoria, l'area si spunta da sola.</p>
+          <div class="areas" id="areas"></div>
+        </section>
+
+        <section class="block" aria-labelledby="h5b">
+          <h3 id="h5b">5. Dettagli</h3>
+          <p class="hint">Tutti facoltativi: lascia vuoto quello che non sai.</p>
+          <div class="grid2">
             <label class="f"><span>Cliente</span><input name="Client" maxlength="200"></label>
-            <label class="f"><span>Tipologia</span><input name="Tipology" maxlength="200"></label>
-            <label class="f"><span>Dimensioni</span><input name="Size" maxlength="200" placeholder="12.000 mq"></label>
-            <label class="f"><span>Stato</span><input name="Status" maxlength="200" list="statuses"><datalist id="statuses"><option>Completed</option><option>In construction</option><option>In design</option></datalist></label>
+            <label class="f"><span>Tipologia</span><input name="Tipology" maxlength="200" placeholder="Es. Hotel"></label>
+            <label class="f"><span>Dimensioni</span><input name="Size" maxlength="200" placeholder="Es. 12.000 mq"></label>
+            <label class="f"><span>Stato</span><input name="Status" maxlength="200" list="statuses" placeholder="Es. Completed"><datalist id="statuses"><option>Completed</option><option>In construction</option><option>In design</option></datalist></label>
             <label class="f wide"><span>Crediti</span><input name="Credits" maxlength="200"></label>
           </div>
         </section>
 
-        <section class="block">
-          <h3>Descrizione</h3>
+        <section class="block" aria-labelledby="h6b">
+          <h3 id="h6b">6. Descrizione</h3>
           <label class="f"><span class="sr">Descrizione</span><textarea name="desc"></textarea>
-            <small>Lascia una riga vuota tra un paragrafo e l'altro. Il testo va in inglese, come il resto del sito.</small></label>
-        </section>
-
-        <section class="block">
-          <h3>Foto</h3>
-          <label class="drop" id="drop">
-            <b>Trascina qui le foto o fai clic per sceglierle</b>
-            <span class="hint">JPG, PNG o WebP. La prima foto è la copertina. Le foto vengono ridimensionate e convertite da sole.</span>
-            <input class="sr" type="file" id="files" accept="image/jpeg,image/png,image/webp" multiple>
-          </label>
-          <ul class="pics" id="pics"></ul>
+            <small>In inglese, come il resto del sito. Lascia una riga vuota tra un paragrafo e l'altro.</small></label>
         </section>
 
         <div class="bar">
-          <button class="btn btn--go" type="submit" id="saveBtn">Pubblica</button>
+          <button class="btn btn--go btn--big" type="submit" id="saveBtn">Pubblica il progetto</button>
           <p class="msg" id="msg" role="alert"></p>
         </div>
       </form>
@@ -256,108 +240,80 @@
 <script>
 (function () {
   'use strict';
-  // Where the site lives. Change these two lines if the repository moves.
-  var REPO = 'ThatsSteve/TestH-A', BRANCH = 'main';
-  var API = 'https://api.github.com', FACTS = ['Location', 'Client', 'Tipology', 'Size', 'Status', 'Credits'];
-  var MAX_SIDE = 3000; // photos are sent at most this size; the site keeps up to 2200 px
+  // The publishing service (Netlify Function). From another host (GitHub Pages, local tests) the Netlify copy answers.
+  var FN = /netlify\.app$/.test(location.hostname) ? '/.netlify/functions/studio' : 'https://redesignha.netlify.app/.netlify/functions/studio';
+  var FACTS = ['Location', 'Client', 'Tipology', 'Size', 'Status', 'Credits'];
+  var MAX_SIDE = 2400;            // photos are prepared at most this size; the site keeps up to 2200 px wide
+  var PIECE = 3500000;            // files travel in pieces of this size
+  var MAX_VIDEO = 250e6, MAX_RAW = 80e6;
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
   var slugify = function (t) { return String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 90); };
-  var store = {
-    get: function (k) { try { return sessionStorage.getItem(k) || localStorage.getItem(k); } catch (e) { return null; } },
-    set: function (k, v, keep) { try { (keep ? localStorage : sessionStorage).setItem(k, v); } catch (e) {} },
-    del: function (k) { try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch (e) {} }
-  };
+  var pad2 = function (n) { return String(n).padStart(2, '0'); };
+  var mb = function (b) { return b >= 1e6 ? (b / 1e6).toFixed(b >= 1e7 ? 0 : 1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB'; };
+  var clock = function (s) { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + pad2(s % 60); };
 
-  var token = null, D = null, pending = {}, current = null, pics = [], dirty = false, watch = null;
+  var D = null, ready = null, pending = {}, current = null, items = [], dirty = false, watch = null, busy = false;
   var form = $('#form');
 
-  /* ---------- GitHub ---------- */
-  function api(path, opt) {
-    opt = opt || {};
-    var h = { 'Authorization': 'Bearer ' + token, 'Accept': opt.raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
-    if (opt.body) h['Content-Type'] = 'application/json';
-    return fetch(API + path, { method: opt.method || 'GET', headers: h, body: opt.body ? JSON.stringify(opt.body) : undefined, cache: 'no-store' }).then(function (r) {
-      if (r.status === 404 && opt.allow404) return null;
-      if (!r.ok) return r.text().then(function (t) { var e = new Error('GitHub ' + r.status); e.status = r.status; e.body = t; throw e; });
-      return opt.raw ? r.text() : r.json();
-    });
+  /* ---------- Publishing service ---------- */
+  function fn(op, body) {
+    body = body || {}; body.op = op;
+    return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), cache: 'no-store' })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) { var e = new Error(j.error || r.status); e.status = r.status; e.body = j; throw e; } return j; }); });
   }
-  var R = '/repos/' + REPO;
   function explain(e) {
     if (!navigator.onLine) return 'Sei offline: controlla la connessione e riprova.';
-    if (e.status === 401) return 'La chiave non è valida o è scaduta: creane una nuova e riprova.';
-    if (e.status === 403 || e.status === 404) return 'La chiave non ha il permesso di scrivere nel sito (serve Contents: Read and write su questo repository).';
+    if (e.status === 503) return 'La pubblicazione diretta non è ancora attiva.';
+    if (e.status === 502) return 'Il servizio di pubblicazione non riesce a scrivere sul sito: avvisa chi gestisce il sito.';
     if (e.status === 422 || e.status === 409) return 'Il sito è stato modificato nello stesso momento da un\'altra persona. Riprova.';
-    return 'Qualcosa non ha funzionato (' + (e.status || e.message) + '). Riprova tra poco.';
+    return 'Qualcosa non ha funzionato. Riprova tra poco; se succede ancora, avvisa chi gestisce il sito.';
   }
 
   function loadData() {
-    return api(R + '/contents/assets/js/data.js?ref=' + BRANCH, { raw: true }).then(function (text) {
+    return fetch('../assets/js/data.js?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('data'); return r.text(); }).then(function (text) {
       var a = text.indexOf('})('), b = text.lastIndexOf(');');
       D = JSON.parse(text.slice(a + 3, b));
     });
   }
-  // Requests still waiting to be published: content/inbox/<time>-<slug>.json
-  function loadPending() {
-    return api(R + '/contents/content/inbox?ref=' + BRANCH, { allow404: true }).then(function (items) {
-      pending = {};
-      (items || []).forEach(function (f) { var m = /^\d{8}-\d{6}-(.+)\.json$/.exec(f.name); if (m) pending[m[1]] = true; });
-    });
-  }
-  function lastRun() {
-    return api(R + '/actions/workflows/publish.yml/runs?per_page=1&branch=' + BRANCH, { allow404: true }).then(function (r) { return r && r.workflow_runs && r.workflow_runs[0]; }).catch(function () { return null; });
-  }
-
-  // One commit with every file: [{path, base64 | text}]
-  function commit(files, message) {
-    var blobs;
-    return Promise.all(files.map(function (f) {
-      return api(R + '/git/blobs', { method: 'POST', body: f.text != null ? { content: f.text, encoding: 'utf-8' } : { content: f.base64, encoding: 'base64' } })
-        .then(function (b) { return { path: f.path, mode: '100644', type: 'blob', sha: b.sha }; });
-    })).then(function (list) { blobs = list; return attempt(3); });
-    function attempt(left) {
-      var parent;
-      return api(R + '/git/ref/heads/' + BRANCH).then(function (ref) {
-        parent = ref.object.sha;
-        return api(R + '/git/commits/' + parent);
-      }).then(function (c) {
-        return api(R + '/git/trees', { method: 'POST', body: { base_tree: c.tree.sha, tree: blobs } });
-      }).then(function (tree) {
-        return api(R + '/git/commits', { method: 'POST', body: { message: message, tree: tree.sha, parents: [parent] } });
-      }).then(function (c) {
-        return api(R + '/git/refs/heads/' + BRANCH, { method: 'PATCH', body: { sha: c.sha } });
-      }).catch(function (e) {
-        if (left > 1 && (e.status === 422 || e.status === 409)) return attempt(left - 1);
-        throw e;
-      });
-    }
+  // Is direct publishing on, and what is still being published?
+  function loadStatus() {
+    return fn('status').then(function (s) {
+      ready = true; pending = {};
+      (s.pending || []).forEach(function (slug) { pending[slug] = true; });
+      return s;
+    }, function (e) { ready = e.status === 503 ? false : ready; pending = {}; return null; });
   }
 
   /* ---------- Status line ---------- */
-  function status(text, tone) { $('#status').dataset.tone = tone || ''; $('#statusText').textContent = text; }
-  function refreshStatus() {
-    var n = Object.keys(pending).length;
-    if (n) { status(n === 1 ? 'Un invio in pubblicazione: il sito si aggiorna tra 2–4 minuti.' : n + ' invii in pubblicazione: il sito si aggiorna tra 2–4 minuti.', 'busy'); return; }
-    lastRun().then(function (run) {
-      if (Object.keys(pending).length) return;
-      if (run && run.status !== 'completed') status('Pubblicazione in corso…', 'busy');
-      else if (run && run.conclusion === 'failure') status('L\'ultima pubblicazione non è riuscita. Controlla i dati e riprova, oppure avvisa chi gestisce il sito.', 'err');
-      else status('Il sito è aggiornato. ' + D.projects.length + ' progetti pubblicati.', 'ok');
-    });
+  function status(text, tone, link) {
+    $('#status').dataset.tone = tone || ''; $('#statusText').textContent = text;
+    var a = $('#statusLink'); a.hidden = !link; if (link) a.href = link;
   }
-  // While something is being published, check every 20 s and reload the data when it is done
+  var lastDone = null;
+  function showStatus(s) {
+    if (ready === false) return status('La pubblicazione diretta non è ancora attiva: "Pubblica" scarica un file con testi, foto e video da inviare a chi gestisce il sito.', '');
+    var n = Object.keys(pending).length;
+    if (n) return status(n === 1 ? 'Un progetto in pubblicazione: foto e video vengono convertiti, il sito si aggiorna tra pochi minuti.' : n + ' progetti in pubblicazione: il sito si aggiorna tra pochi minuti.', 'busy');
+    var run = s && s.run;
+    if (run && run.status !== 'completed') return status('Pubblicazione in corso…', 'busy');
+    if (run && run.conclusion === 'failure') return status('L\'ultima pubblicazione non è riuscita: controlla i dati e riprova, oppure avvisa chi gestisce il sito.', 'err');
+    if (lastDone) return status('Fatto: "' + lastDone.title + '" è online.', 'ok', lastDone.removed ? null : '../projects/' + lastDone.slug + '/');
+    status('Tutto aggiornato. ' + D.projects.length + ' progetti sul sito.', 'ok');
+  }
+  // While something is being published, check every 20 s; when done, reload the projects
   function watchPending() {
     if (watch || !Object.keys(pending).length) return;
     watch = setInterval(function () {
-      loadPending().then(function () {
-        if (Object.keys(pending).length) return list();
+      loadStatus().then(function (s) {
+        if (Object.keys(pending).length) { list(); return showStatus(s); }
         clearInterval(watch); watch = null;
-        // the build commit follows the inbox removal by a few seconds
-        setTimeout(function () { loadData().then(function () { list(); refreshStatus(); if (current && !dirty) open(find(current)); }); }, 8000);
-      }).catch(function () {});
+        status('Ultimi ritocchi: il sito si sta aggiornando…', 'busy');
+        // the site redeploys a little after the conversion: wait, then reload
+        setTimeout(function () { loadData().then(function () { list(); showStatus(s); if (current && !dirty) open(find(current)); }); }, 45000);
+      });
     }, 20000);
   }
 
@@ -365,14 +321,13 @@
   var find = function (slug) { return D.projects.filter(function (p) { return p.slug === slug; })[0] || null; };
   var url = function (src) { return /^https?:/.test(src) ? src : '..' + src; };
   var thumb = function (g) { if (!g) return ''; if (/^https?:/.test(g.src) || !g.v || !g.v.length) return url(g.src); return url(g.src.replace(/\.webp$/, g.v[0] + '.webp')); };
-  // Known map positions, from the projects already on the site
   function places() {
     var seen = {}, out = [];
     D.projects.forEach(function (p) {
       if (!p.geo) return;
       var k = p.geo.join(',');
       if (seen[k]) return; seen[k] = true;
-      out.push({ k: k, label: (p.facts.Location || '').replace(/\s*,\s*(Italy|China|Korea)$/i, ', $1') });
+      out.push({ k: k, label: p.facts.Location || '' });
     });
     return out.sort(function (a, b) { return a.label.localeCompare(b.label); });
   }
@@ -383,10 +338,10 @@
     var shown = D.projects.filter(function (p) { return !q || slugify(p.title + ' ' + (p.facts.Location || '')).replace(/-/g, ' ').indexOf(q) >= 0; });
     $('#count').textContent = shown.length === D.projects.length ? D.projects.length + ' progetti' : shown.length + ' di ' + D.projects.length + ' progetti';
     $('#list').innerHTML = shown.map(function (p) {
-      var busy = pending[p.slug];
-      return '<li><button type="button" class="' + (busy ? 'busy' : '') + '" data-slug="' + esc(p.slug) + '" aria-current="' + (current === p.slug) + '">' +
+      var b = pending[p.slug];
+      return '<li><button type="button" class="' + (b ? 'busy' : '') + '" data-slug="' + esc(p.slug) + '" aria-current="' + (current === p.slug) + '">' +
         (p.cover ? '<img src="' + esc(thumb(p.cover)) + '" alt="" loading="lazy">' : '<span class="ph"></span>') +
-        '<span><b>' + esc(p.title) + '</b><small>' + (busy ? 'In pubblicazione…' : esc(p.facts.Location || '')) + '</small></span></button></li>';
+        '<span><b>' + esc(p.title) + '</b><small>' + (b ? 'In pubblicazione…' : esc(p.facts.Location || '')) + '</small></span></button></li>';
     }).join('');
   }
 
@@ -401,7 +356,7 @@
     }).join('');
   }
   function placesHTML() {
-    $('#place').innerHTML = '<option value="">Non mostrare sulla mappa</option>' + places().map(function (p) { return '<option value="' + p.k + '">' + esc(p.label) + '</option>'; }).join('') + '<option value="other">Altro luogo: inserisci le coordinate</option>';
+    $('#place').innerHTML = '<option value="">Non mostrare sulla mappa</option>' + places().map(function (p) { return '<option value="' + p.k + '">' + esc(p.label) + '</option>'; }).join('') + '<option value="other">Un altro posto: inserisco le coordinate</option>';
   }
   function setPlace(geo) {
     var k = geo ? geo.join(',') : '';
@@ -410,44 +365,72 @@
     form.lat.value = geo && !has ? geo[0] : ''; form.lng.value = geo && !has ? geo[1] : '';
     $('#coords').hidden = $('#place').value !== 'other';
   }
+  // Picks the map point when the place typed matches one already used (same city)
+  function guessPlace() {
+    if ($('#place').dataset.touched) return;
+    var city = slugify(form.Location.value.split(/[,–-]/)[0]);
+    if (!city) return;
+    var hit = places().filter(function (p) { return slugify(p.label.split(/[,–-]/)[0]) === city; })[0];
+    if (hit) { $('#place').value = hit.k; $('#coords').hidden = true; }
+  }
+  function showAddr() { $('#addrText').textContent = '/projects/' + (form.slug.value || '…') + '/'; }
 
   function open(p, copy) {
     current = p && !copy ? p.slug : null;
     form.reset();
     $$('[aria-invalid]', form).forEach(function (el) { el.removeAttribute('aria-invalid'); });
+    delete $('#place').dataset.touched;
     form.title.value = p ? (copy ? p.title + ' (copia)' : p.title) : '';
     form.slug.value = p ? (copy ? slugify(p.title + ' copia') : p.slug) : '';
     form.slug.dataset.auto = p && !copy ? '' : '1';
+    $('#slugBox').hidden = true; $('#addrEdit').hidden = false; showAddr();
+    $('#slugHint').textContent = current ? 'Se lo cambi, il vecchio indirizzo della pagina non funzionerà più.' : 'Solo lettere minuscole, numeri e trattini.';
     FACTS.forEach(function (k) { form[k].value = p && p.facts[k] || ''; });
     form.desc.value = p ? (p.desc || []).join('\n\n') : '';
     $$('[name=area]').forEach(function (c) { c.checked = !!p && p.areas.indexOf(+c.value) >= 0; });
     setPlace(p && p.geo);
-    pics = p ? (p.gallery || []).map(function (g) { return { keep: g, thumb: thumb(g), w: g.w, h: g.h }; }) : [];
-    if (p && p.cover && !pics.some(function (x) { return x.keep.src === p.cover.src; })) pics.unshift({ keep: p.cover, thumb: thumb(p.cover), w: p.cover.w, h: p.cover.h });
-    drawPics();
+    items = p ? (p.gallery || []).map(function (g) { return { keep: g, thumb: thumb(g), w: g.w, h: g.h, video: !!g.video }; }) : [];
+    if (p && p.cover && !items.some(function (x) { return x.keep.src === p.cover.src; })) items.unshift({ keep: p.cover, thumb: thumb(p.cover), w: p.cover.w, h: p.cover.h });
+    drawMedia();
     $('#heading').textContent = current ? p.title : copy ? 'Copia di ' + p.title : 'Nuovo progetto';
-    $('#slugHint').textContent = current ? 'Se lo cambi, il vecchio indirizzo della pagina non funzionerà più.' : 'Creato dal titolo: solo lettere minuscole, numeri e trattini.';
     $('#viewBtn').hidden = $('#dupBtn').hidden = $('#delBtn').hidden = !current;
     if (current) $('#viewBtn').href = '../projects/' + current + '/';
-    var busy = current && pending[current];
-    $('#saveBtn').disabled = $('#delBtn').disabled = !!busy;
-    say(busy ? 'Questo progetto è in pubblicazione: potrai modificarlo di nuovo tra qualche minuto.' : '');
+    var b = current && pending[current];
+    $('#saveBtn').disabled = $('#delBtn').disabled = !!b;
+    $('#saveBtn').textContent = current ? 'Pubblica le modifiche' : 'Pubblica il progetto';
+    say(b ? 'Questo progetto è in pubblicazione: potrai modificarlo di nuovo tra qualche minuto.' : '');
     dirty = false;
     list();
   }
 
-  function drawPics() {
-    $('#pics').innerHTML = pics.map(function (x, i) {
-      return '<li class="pic"><div class="pic__img"><img src="' + esc(x.thumb) + '" alt="Foto ' + (i + 1) + '">' + (i === 0 ? '<span class="pic__tag">Copertina</span>' : '') + '</div>' +
-        '<span class="pic__meta">' + (x.blob ? 'Nuova, ' : '') + x.w + ' × ' + x.h + ' px</span>' +
-        '<div class="pic__acts"><button type="button" data-move="-1" data-i="' + i + '" aria-label="Sposta prima la foto ' + (i + 1) + '"' + (i === 0 ? ' disabled' : '') + '>←</button>' +
-        '<button type="button" data-move="1" data-i="' + i + '" aria-label="Sposta dopo la foto ' + (i + 1) + '"' + (i === pics.length - 1 ? ' disabled' : '') + '>→</button>' +
-        '<button type="button" class="x" data-drop="' + i + '" aria-label="Togli la foto ' + (i + 1) + '">Togli</button></div></li>';
+  /* ---------- Photos and videos ---------- */
+  function drawMedia() {
+    var firstPhoto = items.findIndex(function (x) { return !x.video; });
+    $('#media').innerHTML = items.map(function (x, i) {
+      var what = x.video ? 'video' : 'foto';
+      var meta = x.keep ? (x.video ? 'Video sul sito' : 'Foto sul sito')
+        : x.video ? 'Video' + (x.dur ? ' · ' + clock(x.dur) : '') + ' · ' + mb(x.size) + '<br><span class="wait">Verrà ottimizzato in MP4</span>'
+        : x.raw ? mb(x.size) + '<br><span class="wait">Verrà convertita in WebP</span>'
+        : x.w + ' × ' + x.h + ' px<br><b>' + (x.ext === 'webp' ? 'Convertita in WebP' : 'Pronta, diventerà WebP') + '</b>';
+      return '<li class="m"><div class="m__img">' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="">' : '<span>' + (x.video ? 'Video' : 'Anteprima non disponibile') + '</span>') +
+        (i === firstPhoto ? '<span class="m__tag">Copertina</span>' : '') + (x.video ? '<span class="m__play">Video</span>' : '') + '</div>' +
+        '<span class="m__meta">' + meta + '</span>' +
+        '<div class="m__acts"><button type="button" data-move="-1" data-i="' + i + '" aria-label="Sposta prima: ' + what + ' ' + (i + 1) + '"' + (i === 0 ? ' disabled' : '') + '>←</button>' +
+        '<button type="button" data-move="1" data-i="' + i + '" aria-label="Sposta dopo: ' + what + ' ' + (i + 1) + '"' + (i === items.length - 1 ? ' disabled' : '') + '>→</button>' +
+        '<button type="button" class="x" data-drop="' + i + '" aria-label="Togli: ' + what + ' ' + (i + 1) + '">Togli</button></div></li>';
     }).join('');
   }
 
-  // Reads a photo, turns it the right way, scales it to MAX_SIDE and makes a JPEG (also strips location data)
-  function prepare(file) {
+  var webpOK = (function () { try { var c = document.createElement('canvas'); c.width = c.height = 1; return c.toDataURL('image/webp').indexOf('data:image/webp') === 0; } catch (e) { return false; } })();
+  var isVideo = function (f) { return /^video\//.test(f.type) || /\.(mp4|m4v|mov|webm|mkv|avi|3gp|mpe?g|wmv)$/i.test(f.name); };
+  var extOf = function (f) {
+    var m = /\.([a-z0-9]{2,5})$/i.exec(f.name);
+    var e = m ? m[1].toLowerCase() : (f.type.split('/')[1] || '').replace('jpeg', 'jpg').replace('quicktime', 'mov');
+    return /^[a-z0-9]{2,5}$/.test(e) ? e : 'bin';
+  };
+
+  // A photo the browser can read: turned the right way, scaled, saved as WebP (JPEG where WebP is not available)
+  function preparePhoto(file) {
     return new Promise(function (res, rej) {
       var src = URL.createObjectURL(file), im = new Image();
       im.onload = function () {
@@ -456,101 +439,188 @@
         var c = document.createElement('canvas'); c.width = w; c.height = h;
         var ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(im, 0, 0, w, h);
         URL.revokeObjectURL(src);
-        c.toBlob(function (b) { b ? res({ blob: b, thumb: URL.createObjectURL(b), w: w, h: h }) : rej(new Error('encode')); }, 'image/jpeg', .9);
+        var type = webpOK ? 'image/webp' : 'image/jpeg';
+        c.toBlob(function (b) { b ? res({ blob: b, ext: webpOK ? 'webp' : 'jpg', thumb: URL.createObjectURL(b), w: w, h: h, size: b.size }) : rej(new Error('encode')); }, type, .9);
       };
       im.onerror = function () { URL.revokeObjectURL(src); rej(new Error('read')); };
       im.src = src;
     });
   }
+  // A video is sent as it is; here we only take a still frame for the preview and its length
+  function prepareVideo(file) {
+    return new Promise(function (res) {
+      var src = URL.createObjectURL(file), v = document.createElement('video'), done = false;
+      var out = { blob: file, ext: extOf(file), video: true, size: file.size, dur: 0 };
+      var finish = function () { if (done) return; done = true; URL.revokeObjectURL(src); res(out); };
+      v.muted = true; v.preload = 'metadata'; v.playsInline = true;
+      v.onloadedmetadata = function () { out.dur = v.duration; out.w = v.videoWidth; out.h = v.videoHeight; v.currentTime = Math.min(1, (v.duration || 2) / 2); };
+      v.onseeked = function () {
+        try { var c = document.createElement('canvas'); c.width = 480; c.height = Math.round(480 * (v.videoHeight || 270) / (v.videoWidth || 480)); c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); out.thumb = c.toDataURL('image/jpeg', .7); } catch (e) {}
+        finish();
+      };
+      v.onerror = finish; setTimeout(finish, 8000);
+      v.src = src;
+    });
+  }
   function addFiles(files) {
-    files = Array.prototype.slice.call(files).filter(function (f) { return /^image\//.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name); });
+    files = Array.prototype.slice.call(files);
     if (!files.length) return;
-    say('Preparo ' + files.length + (files.length === 1 ? ' foto…' : ' foto…'));
-    var bad = [];
+    say('Preparo ' + files.length + (files.length === 1 ? ' file…' : ' file…'));
+    var big = [];
     files.reduce(function (chain, f) {
-      return chain.then(function () { return prepare(f).then(function (x) { pics.push(x); drawPics(); dirty = true; }, function () { bad.push(f.name); }); });
+      return chain.then(function () {
+        if (isVideo(f)) {
+          if (f.size > MAX_VIDEO) { big.push(f.name); return; }
+          return prepareVideo(f).then(function (x) { items.push(x); drawMedia(); dirty = true; });
+        }
+        return preparePhoto(f).catch(function () {
+          // not readable here (e.g. HEIC on Windows, TIFF): sent as it is and converted on the server
+          if (f.size > MAX_RAW) { big.push(f.name); return null; }
+          return { blob: f, ext: extOf(f), raw: true, size: f.size };
+        }).then(function (x) { if (x) { items.push(x); drawMedia(); dirty = true; } });
+      });
     }, Promise.resolve()).then(function () {
-      var ok = files.length - bad.length;
-      say((ok ? ok + (ok === 1 ? ' foto aggiunta.' : ' foto aggiunte.') : '') + (bad.length ? ' Non riesco a leggere: ' + bad.join(', ') + '. Esportale in JPG e riprova.' : ''), !!bad.length);
+      var ok = files.length - big.length;
+      say((ok ? (ok === 1 ? '1 file aggiunto.' : ok + ' file aggiunti.') : '') + (big.length ? ' Troppo grandi (massimo 250 MB per un video, 80 MB per una foto): ' + big.join(', ') + '.' : ''), !!big.length);
     });
   }
   function say(t, err) { var m = $('#msg'); m.textContent = t; m.className = 'msg' + (err ? ' err' : ''); }
   function toBase64(blob) {
     return new Promise(function (res, rej) { var r = new FileReader(); r.onload = function () { res(String(r.result).split(',')[1]); }; r.onerror = rej; r.readAsDataURL(blob); });
   }
-  var stamp = function () { var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); }; return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()); };
+  var stamp = function () { var d = new Date(); return d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) + '-' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + pad2(d.getUTCSeconds()); };
 
   function validate() {
-    var bad = null;
-    var mark = function (el, ok) { if (ok) el.removeAttribute('aria-invalid'); else { el.setAttribute('aria-invalid', 'true'); bad = bad || el; } return ok; };
+    if (!form.slug.value) form.slug.value = slugify(form.title.value);
     var slug = form.slug.value.trim();
-    mark(form.title, !!form.title.value.trim());
-    mark(form.slug, /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) && !(slug !== current && find(slug)));
-    mark(form.Location, !!form.Location.value.trim());
-    var geo = null;
-    if ($('#place').value === 'other') {
-      var la = parseFloat(String(form.lat.value).replace(',', '.')), lo = parseFloat(String(form.lng.value).replace(',', '.'));
-      mark(form.lat, Math.abs(la) <= 90); mark(form.lng, Math.abs(lo) <= 180);
-      geo = [la, lo];
-    } else if ($('#place').value) geo = $('#place').value.split(',').map(Number);
+    var geo = null, la, lo, other = $('#place').value === 'other';
+    if (other) { la = parseFloat(String(form.lat.value).replace(',', '.')); lo = parseFloat(String(form.lng.value).replace(',', '.')); geo = [la, lo]; }
+    else if ($('#place').value) geo = $('#place').value.split(',').map(Number);
     var areas = $$('[name=area]:checked').map(function (c) { return +c.value; });
-    var problem = !form.title.value.trim() ? 'Scrivi il titolo.'
-      : !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) ? 'L\'indirizzo può contenere solo lettere minuscole, numeri e trattini.'
-      : slug !== current && find(slug) ? 'Un altro progetto usa già questo indirizzo.'
-      : !areas.length ? 'Scegli almeno un\'area.'
-      : !form.Location.value.trim() ? 'Scrivi il luogo.'
-      : bad ? 'Controlla le coordinate.'
-      : !pics.length ? 'Aggiungi almeno una foto: la prima è la copertina.' : '';
-    if (problem) { say(problem, true); (bad || (!areas.length ? $('[name=area]') : $('#drop'))).focus(); return null; }
+    var taken = slug !== current && find(slug);
+    // checks in the order of the page: the first problem is shown and its field gets the focus
+    var checks = [
+      [!!form.title.value.trim(), 'Scrivi il nome del progetto.', form.title],
+      [/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) && !taken, taken ? 'Un altro progetto ha già questo nome: cambia il nome o l\'indirizzo della pagina.' : 'L\'indirizzo della pagina può contenere solo lettere minuscole, numeri e trattini.', form.slug],
+      [items.length > 0, 'Aggiungi almeno una foto o un video.', $('#files')],
+      [!!form.Location.value.trim(), 'Scrivi dove si trova il progetto.', form.Location],
+      [!other || Math.abs(la) <= 90, 'Controlla la latitudine.', form.lat],
+      [!other || Math.abs(lo) <= 180, 'Controlla la longitudine.', form.lng],
+      [areas.length > 0, 'Scegli almeno un\'area.', $('[name=area]')]
+    ];
+    checks.forEach(function (c) { if (c[2].matches('input:not([type=checkbox]):not([type=file])')) { if (c[0]) c[2].removeAttribute('aria-invalid'); else c[2].setAttribute('aria-invalid', 'true'); } });
+    var fail = checks.filter(function (c) { return !c[0]; })[0];
+    if (fail) {
+      say(fail[1], true);
+      if (fail[2] === form.slug) { $('#slugBox').hidden = false; $('#addrEdit').hidden = true; }
+      fail[2].focus({ preventScroll: true });
+      (fail[2] === $('#files') ? $('#drop') : fail[2]).scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return null;
+    }
     var facts = {};
     FACTS.forEach(function (k) { var v = form[k].value.trim(); if (v) facts[k] = v; });
     return { slug: slug, title: form.title.value.trim(), areas: areas, facts: facts, geo: geo,
       desc: form.desc.value.split(/\n\s*\n/).map(function (t) { return t.trim(); }).filter(Boolean) };
   }
 
+  // Sends one file in pieces; returns the request entry and the repository files to add
+  function upload(x, name, dir, progress) {
+    var pieces = [], n = Math.max(1, Math.ceil(x.blob.size / PIECE)), list = [];
+    for (var i = 0; i < n; i++) pieces.push(x.blob.slice(i * PIECE, (i + 1) * PIECE));
+    return pieces.reduce(function (chain, piece, i) {
+      return chain.then(function () {
+        var t0 = Date.now();
+        return toBase64(piece).then(function (b) { return fn('blob', { content: b }); }).then(function (r) {
+          var part = n === 1 ? name : name + '.' + String(i + 1).padStart(3, '0');
+          list.push({ path: dir + '/' + part, sha: r.sha, part: part });
+          progress(piece.size);
+          // GitHub accepts about one new file per second: keep the pace
+          var wait = 900 - (Date.now() - t0); if (wait > 0) return new Promise(function (ok) { setTimeout(ok, wait); });
+        });
+      });
+    }, Promise.resolve()).then(function () {
+      return { entry: { name: name, parts: list.map(function (f) { return f.part; }), kind: x.video ? 'video' : 'photo' }, files: list.map(function (f) { return { path: f.path, sha: f.sha }; }) };
+    });
+  }
+
   function publish(e) {
     e.preventDefault();
+    if (busy) return;
     var v = validate(); if (!v) return;
-    var id = stamp() + '-' + v.slug, dir = 'content/inbox/' + id, n = 0;
-    var btn = $('#saveBtn'); btn.disabled = true;
-    say('Invio in corso…');
-    Promise.all(pics.map(function (x) {
-      if (x.keep) return Promise.resolve({ g: { keep: x.keep } });
-      var name = String(++n).padStart(2, '0') + '.jpg';
-      return toBase64(x.blob).then(function (b) { return { g: { file: name }, f: { path: dir + '/' + name, base64: b } }; });
-    })).then(function (parts) {
-      var req = { action: 'save', slug: v.slug, previousSlug: current || undefined, by: $('#who').textContent, at: new Date().toISOString(),
-        project: { title: v.title, areas: v.areas, facts: v.facts, desc: v.desc, geo: v.geo, gallery: parts.map(function (p) { return p.g; }) } };
-      var files = parts.filter(function (p) { return p.f; }).map(function (p) { return p.f; });
-      files.push({ path: dir + '.json', text: JSON.stringify(req, null, 1) + '\n' });
-      return commit(files, (current ? 'Update ' : 'Add ') + v.title + ' (studio dashboard)');
-    }).then(function () {
+    var id = stamp() + '-' + v.slug, dir = 'content/inbox/' + id;
+    var total = items.reduce(function (s, x) { return s + (x.blob ? x.blob.size : 0); }, 0), sent = 0;
+    var btn = $('#saveBtn'); btn.disabled = true; busy = true;
+    var progress = function (n) { sent += n; say('Carico foto e video: ' + Math.min(99, Math.round(sent / Math.max(1, total) * 100)) + '%. Non chiudere la pagina.'); };
+    var req = { action: 'save', slug: v.slug, previousSlug: current || undefined, at: new Date().toISOString(),
+      project: { title: v.title, areas: v.areas, facts: v.facts, desc: v.desc, geo: v.geo, gallery: [] } };
+    var files = [], k = 0;
+    var job;
+    if (ready === false) {
+      // direct publishing off: one file with everything inside, to send to whoever manages the site
+      say('Preparo il file…');
+      job = items.reduce(function (chain, x) {
+        return chain.then(function () {
+          if (x.keep) { req.project.gallery.push({ keep: x.keep }); return; }
+          var name = pad2(++k) + '.' + x.ext;
+          return toBase64(x.blob).then(function (b) { req.project.gallery.push({ name: name, data: b, kind: x.video ? 'video' : 'photo' }); });
+        });
+      }, Promise.resolve()).then(function () { return download(id, req); });
+    } else {
+      say(total ? 'Carico foto e video: 0%. Non chiudere la pagina.' : 'Invio in corso…');
+      job = items.reduce(function (chain, x) {
+        return chain.then(function () {
+          if (x.keep) { req.project.gallery.push({ keep: x.keep }); return; }
+          return upload(x, pad2(++k) + '.' + x.ext, dir, progress).then(function (u) { req.project.gallery.push(u.entry); files = files.concat(u.files); });
+        });
+      }, Promise.resolve()).then(function () {
+        files.push({ path: dir + '.json', text: JSON.stringify(req, null, 1) + '\n' });
+        say('Ultimo passaggio…');
+        return fn('commit', { files: files, message: (current ? 'Update ' : 'Add ') + v.title + ' (studio dashboard)' });
+      });
+    }
+    job.then(function (file) {
+      busy = false; dirty = false;
+      if (ready === false) { btn.disabled = false; say('File scaricato: ' + file + '. Invialo a chi gestisce il sito.'); return; }
       pending[v.slug] = true; if (current && current !== v.slug) pending[current] = true;
-      dirty = false; current = current || null;
-      say('Inviato. Le foto vengono ottimizzate e il sito si aggiorna tra 2–4 minuti.');
-      list(); refreshStatus(); watchPending();
-    }).catch(function (err) { say(explain(err), true); btn.disabled = false; });
+      lastDone = { slug: v.slug, title: v.title };
+      say('Inviato. Foto e video vengono ottimizzati e il progetto sarà online tra pochi minuti: puoi chiudere la pagina.');
+      list(); showStatus(); watchPending();
+    }).catch(function (err) {
+      busy = false; btn.disabled = false;
+      if (err.status === 503) { ready = false; showStatus(); say('La pubblicazione diretta non è ancora attiva: premi di nuovo per scaricare il file da inviare.', true); return; }
+      say(explain(err), true);
+    });
+  }
+
+  // Saves the request as a file named <time>-<slug>.json, ready for content/inbox/
+  function download(id, req) {
+    var name = id + '.json', a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(req) + '\n'], { type: 'application/json' }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 60000);
+    return name;
   }
 
   function ask(title, text, yes) {
     return new Promise(function (res) {
-      var d = $('#confirm');
+      var d = $('#confirm'), settled = false;
+      var done = function (v) { if (settled) return; settled = true; d.close(); res(v); };
       $('#confirmTitle').textContent = title; $('#confirmText').textContent = text; $('#confirmYes').textContent = yes;
-      var done = function (v) { d.close(); $('#confirmYes').onclick = $('#confirmNo').onclick = null; res(v); };
       $('#confirmYes').onclick = function () { done(true); }; $('#confirmNo').onclick = function () { done(false); };
-      d.onclose = function () { res(false); };
+      d.onclose = function () { done(false); };
       d.showModal();
     });
   }
 
   function remove() {
     var p = find(current); if (!p) return;
-    ask('Togliere "' + p.title + '"?', 'Il progetto e le sue foto spariscono dal sito tra pochi minuti. Per rimetterlo bisognerà caricarlo di nuovo.', 'Togli dal sito').then(function (ok) {
+    ask('Togliere "' + p.title + '" dal sito?', 'Il progetto, le sue foto e i suoi video spariscono dal sito tra pochi minuti. Per rimetterlo bisognerà caricarlo di nuovo.', 'Sì, togli dal sito').then(function (ok) {
       if (!ok) return;
+      var id = stamp() + '-' + p.slug, req = { action: 'remove', slug: p.slug, at: new Date().toISOString() };
+      if (ready === false) { say('File scaricato: ' + download(id, req) + '. Invialo a chi gestisce il sito.'); return; }
       say('Invio in corso…');
-      var id = stamp() + '-' + p.slug;
-      commit([{ path: 'content/inbox/' + id + '.json', text: JSON.stringify({ action: 'remove', slug: p.slug, by: $('#who').textContent, at: new Date().toISOString() }, null, 1) + '\n' }], 'Remove ' + p.title + ' (studio dashboard)')
-        .then(function () { pending[p.slug] = true; open(p); say('Inviato. Il progetto sparisce dal sito tra 2–4 minuti.'); refreshStatus(); watchPending(); })
+      fn('commit', { files: [{ path: 'content/inbox/' + id + '.json', text: JSON.stringify(req, null, 1) + '\n' }], message: 'Remove ' + p.title + ' (studio dashboard)' })
+        .then(function () { pending[p.slug] = true; lastDone = { slug: p.slug, title: p.title, removed: true }; open(p); say('Inviato. Il progetto sparisce dal sito tra pochi minuti.'); showStatus(); watchPending(); })
         .catch(function (err) { say(explain(err), true); });
     });
   }
@@ -559,30 +629,36 @@
   form.addEventListener('submit', publish);
   form.addEventListener('input', function (e) {
     dirty = true;
-    if (e.target === form.title && form.slug.dataset.auto) form.slug.value = slugify(form.title.value);
-    if (e.target === form.slug) form.slug.dataset.auto = '';
+    if (e.target === form.title && form.slug.dataset.auto) { form.slug.value = slugify(form.title.value); showAddr(); }
+    if (e.target === form.slug) { form.slug.dataset.auto = ''; showAddr(); }
+    if (e.target === form.Location) guessPlace();
   });
   form.addEventListener('change', function (e) {
     var t = e.target;
     if (t.name === 'area' && t.checked && t.dataset.parent) $('[name=area][value="' + t.dataset.parent + '"]').checked = true;
     if (t.name === 'area' && !t.checked && !t.dataset.parent) $$('[name=area][data-parent="' + t.value + '"]').forEach(function (c) { c.checked = false; });
-    if (t === $('#place')) $('#coords').hidden = t.value !== 'other';
+    if (t === $('#place')) { $('#place').dataset.touched = '1'; $('#coords').hidden = t.value !== 'other'; }
   });
+  $('#addrEdit').addEventListener('click', function () { $('#slugBox').hidden = false; $('#addrEdit').hidden = true; form.slug.focus(); });
   $('#files').addEventListener('change', function (e) { addFiles(e.target.files); e.target.value = ''; });
   var drop = $('#drop');
   ['dragenter', 'dragover'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('is-over'); }); });
   ['dragleave', 'drop'].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('is-over'); }); });
   drop.addEventListener('drop', function (e) { addFiles(e.dataTransfer.files); });
-  $('#pics').addEventListener('click', function (e) {
+  // dropping files anywhere on the page adds them too
+  document.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.addEventListener('drop', function (e) { if (!drop.contains(e.target)) { e.preventDefault(); if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files); } });
+  $('#media').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     var i = +b.dataset.i;
-    if (b.dataset.drop) { pics.splice(+b.dataset.drop, 1); }
-    else { var j = i + +b.dataset.move; var t = pics[i]; pics[i] = pics[j]; pics[j] = t; }
-    dirty = true; drawPics();
-    var again = $('#pics [data-i="' + (b.dataset.move ? i + +b.dataset.move : 0) + '"][data-move="' + (b.dataset.move || -1) + '"]');
+    if (b.dataset.drop) { items.splice(+b.dataset.drop, 1); }
+    else { var j = i + +b.dataset.move; var t = items[i]; items[i] = items[j]; items[j] = t; }
+    dirty = true; drawMedia();
+    var again = b.dataset.move && $('#media [data-i="' + (i + +b.dataset.move) + '"][data-move="' + b.dataset.move + '"]');
     if (again && !again.disabled) again.focus();
   });
   function leave(next) {
+    if (busy) return say('Aspetta che il caricamento finisca.', true);
     if (!dirty) return next();
     ask('Lasciare le modifiche?', 'Le modifiche a questo progetto non sono ancora state pubblicate.', 'Lascia le modifiche').then(function (ok) { if (ok) next(); });
   }
@@ -590,36 +666,17 @@
     var b = e.target.closest('button'); if (!b) return;
     leave(function () { open(find(b.dataset.slug)); window.scrollTo(0, 0); $('#heading').focus({ preventScroll: true }); });
   });
-  $('#newBtn').addEventListener('click', function () { leave(function () { open(null); form.title.focus(); }); });
-  $('#dupBtn').addEventListener('click', function () { leave(function () { open(find(current), true); form.title.focus(); say('Copia pronta: cambia titolo e dati, poi pubblica.'); }); });
+  $('#newBtn').addEventListener('click', function () { leave(function () { open(null); window.scrollTo(0, 0); form.title.focus(); }); });
+  $('#dupBtn').addEventListener('click', function () { leave(function () { open(find(current), true); window.scrollTo(0, 0); form.title.focus(); say('Copia pronta: cambia nome e dati, poi pubblica.'); }); });
   $('#delBtn').addEventListener('click', remove);
   $('#search').addEventListener('input', list);
-  $('#logout').addEventListener('click', function () { store.del('ha-dash'); location.reload(); });
-  window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', function (e) { if (dirty || busy) { e.preventDefault(); e.returnValue = ''; } });
 
   /* ---------- Start ---------- */
-  function start() {
-    status('Caricamento dei progetti…', 'busy');
-    return Promise.all([api('/user'), api(R)]).then(function (r) {
-      if (!r[1].permissions || !r[1].permissions.push) { var e = new Error('no push'); e.status = 403; throw e; }
-      $('#who').textContent = r[0].login;
-      return Promise.all([loadData(), loadPending()]);
-    }).then(function () {
-      $('#gate').hidden = true; $('#app').hidden = false;
-      areasHTML(); placesHTML(); open(null); refreshStatus(); watchPending();
-    });
-  }
-  $('#gateForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var t = $('#token').value.trim();
-    if (!t) { $('#gateMsg').textContent = 'Incolla la chiave.'; $('#token').focus(); return; }
-    token = t; $('#gateMsg').textContent = 'Controllo la chiave…';
-    start().then(function () { store.set('ha-dash', t, $('#remember').checked); $('#token').value = ''; })
-      .catch(function (err) { token = null; $('#gateMsg').textContent = explain(err); $('#token').focus(); });
-  });
-  token = store.get('ha-dash');
-  if (token) start().catch(function (err) { store.del('ha-dash'); token = null; $('#app').hidden = true; $('#gate').hidden = false; $('#gateMsg').textContent = explain(err); });
-  else $('#gate').hidden = false;
+  status('Caricamento dei progetti…', 'busy');
+  Promise.all([loadData(), loadStatus()]).then(function (r) {
+    areasHTML(); placesHTML(); open(null); showStatus(r[1]); watchPending();
+  }).catch(function () { status('Non riesco a leggere i progetti del sito. Controlla la connessione e ricarica la pagina.', 'err'); });
 })();
 </script>
 </body>

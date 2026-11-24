@@ -11,11 +11,11 @@
   BASE = (BASE || '').replace(/\/$/, '');
   // Site may live in a sub-folder (e.g. GitHub Pages): prefix internal links
   const link = p => BASE + p;
-  // Root-relative paths ("/x") get the sub-folder, in src, href and srcset; paths that already have it are left alone
+  // Root-relative paths ("/x") get the sub-folder, in src, href, poster and srcset; paths that already have it are left alone
   const local = s => typeof s === 'string' && s.charAt(0) === '/' && s.charAt(1) !== '/';
   const based = s => (local(s) && s.indexOf(BASE + '/') !== 0 ? BASE + s : s);
   const withBase = h => (BASE ? h
-    .replace(/(href|src)="(\/[^"]*)"/g, (m, a, v) => `${a}="${based(v)}"`)
+    .replace(/(href|src|poster)="(\/[^"]*)"/g, (m, a, v) => `${a}="${based(v)}"`)
     .replace(/srcset="([^"]*)"/g, (m, v) => `srcset="${v.split(', ').map(based).join(', ')}"`) : h);
 
   const SITE_URL = 'https://www.hastudio.it';
@@ -29,7 +29,7 @@
   /* ---------------------------------------------------------------- data */
   const P = D.projects;
   // In the browser, images hosted with the site follow the sub-folder too (viewer, map, hero)
-  if (BASE) P.forEach(p => [p.cover].concat(p.gallery).forEach(im => { if (im) im.src = based(im.src); }));
+  if (BASE) P.forEach(p => [p.cover].concat(p.gallery).forEach(im => { if (im) { im.src = based(im.src); if (im.video) im.video = based(im.video); } }));
   const AREA_ORDER = ['architecture', 'engineering', 'urban-planning-and-landscape', 'competition'];
   const areaById = Object.fromEntries(D.areas.map(a => [a.id, a]));
   const areaBySlug = Object.fromEntries(D.areas.map(a => [a.slug, a]));
@@ -444,8 +444,8 @@
     return out;
   }
 
-  // Images shown in the viewer: the gallery, plus the cover if it is not part of it
-  const lightboxItems = p => (p.gallery.some(g => g.src === p.cover.src) ? p.gallery : [p.cover].concat(p.gallery));
+  // Images shown in the viewer: the gallery, plus the cover if it is not part of it (videos play in place)
+  const lightboxItems = p => { const g = p.gallery.filter(x => !x.video); return g.some(x => x.src === p.cover.src) ? g : [p.cover].concat(g); };
   const lbIndex = (p, im) => Math.max(0, lightboxItems(p).findIndex(g => g.src === im.src));
 
   function splitLead(desc) {
@@ -462,7 +462,7 @@
     if (!p) return null;
     const i = P.indexOf(p);
     const prev = P[(i - 1 + P.length) % P.length], next = P[(i + 1) % P.length];
-    const gal = p.gallery.filter(g => g.src !== p.cover.src);
+    const gal = p.gallery.filter(g => g.video || g.src !== p.cover.src);
     const facts = Object.keys(FACT_LABELS).filter(k => p.facts[k]);
     const { lead, body } = splitLead(p.desc);
     const nearby = P.filter(q => q !== p && country(q) === country(p));
@@ -490,7 +490,8 @@
         <h2 class="sec__title gal__title" id="h-gal" data-r="lines">${words('Gallery')}<sup class="gal__sup">${pad(gal.length)}</sup></h2>
         <ol class="gal__list">
           ${gal.map((item, k) => `<li class="gal__item" style="--ar:${(item.w / item.h).toFixed(3)};--nw:${item.w}px">
-              <button type="button" class="gal__btn" data-lb="${lbIndex(p, item)}" aria-label="Enlarge image ${k + 1} of ${gal.length}">${pic(item, '(max-width: 1240px) 100vw, 1200px', `${p.title}, image ${k + 1}`)}</button>
+              ${item.video ? `<video class="gal__vid" src="${esc(item.video)}" poster="${esc(item.src)}" width="${item.w}" height="${item.h}" controls playsinline preload="none" aria-label="${esc(p.title)}, video ${k + 1}"></video>`
+                : `<button type="button" class="gal__btn" data-lb="${lbIndex(p, item)}" aria-label="Enlarge image ${k + 1} of ${gal.length}">${pic(item, '(max-width: 1240px) 100vw, 1200px', `${p.title}, image ${k + 1}`)}</button>`}
               <p class="gal__cap"><span class="gal__n">${pad(k + 1)} / ${pad(gal.length)}</span><span class="gal__t">${esc(p.title)}</span></p>
             </li>`).join('')}
         </ol>

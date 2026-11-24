@@ -85,7 +85,7 @@ ${V.footer()}
 `;
   // Turn every root-relative link ("/projects/x/") into a page-relative one ("../../projects/x/")
   return html
-    .replace(/(href|src)="\/(?!\/)/g, `$1="${rel}`)
+    .replace(/(href|src|poster)="\/(?!\/)/g, `$1="${rel}`)
     .replace(/srcset="([^"]*)"/g, (m, v) => `srcset="${v.split(', ').map(s => (/^\/(?!\/)/.test(s) ? rel + s.slice(1) : s)).join(', ')}"`);
 }
 

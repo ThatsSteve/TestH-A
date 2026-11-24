@@ -14,3 +14,7 @@
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
     Referrer-Policy = "no-referrer"
+
+# Publishing service used by the studio dashboard (needs GITHUB_TOKEN in the site's environment variables)
+[functions]
+  directory = "netlify/functions"
