@@ -80,7 +80,9 @@ ${V.footer()}
 </html>
 `;
   // Turn every root-relative link ("/projects/x/") into a page-relative one ("../../projects/x/")
-  return html.replace(/(href|src)="\/(?!\/)/g, `$1="${rel}`);
+  return html
+    .replace(/(href|src)="\/(?!\/)/g, `$1="${rel}`)
+    .replace(/srcset="([^"]*)"/g, (m, v) => `srcset="${v.split(', ').map(s => (/^\/(?!\/)/.test(s) ? rel + s.slice(1) : s)).join(', ')}"`);
 }
 
 function write(rel, content) {
@@ -129,7 +131,7 @@ write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${paths.map(p => {
   const r = V.match(p);
-  const imgs = r.name === 'project' ? V.data.projBySlug[r.slug].gallery.map(g => `<image:image><image:loc>${g.src}</image:loc></image:image>`).join('') : '';
+  const imgs = r.name === 'project' ? V.data.projBySlug[r.slug].gallery.map(g => `<image:image><image:loc>${V.abs(g.src)}</image:loc></image:image>`).join('') : '';
   return `<url><loc>${V.SITE_URL}${p}</loc><lastmod>${today}</lastmod>${imgs}</url>`;
 }).join('\n')}
 </urlset>
