@@ -1,0 +1,39 @@
+{
+ "action": "save",
+ "slug": "prova-dashboard",
+ "at": "2026-11-24T19:41:50.041Z",
+ "project": {
+  "title": "Prova dashboard",
+  "areas": [
+   2,
+   13
+  ],
+  "facts": {
+   "Location": "Venice, Italy",
+   "Tipology": "Test"
+  },
+  "desc": [
+   "Test project created to check the studio dashboard. It will be removed."
+  ],
+  "geo": [
+   45.4408,
+   12.3155
+  ],
+  "gallery": [
+   {
+    "name": "01.webp",
+    "parts": [
+     "01.webp"
+    ],
+    "kind": "photo"
+   },
+   {
+    "name": "02.webm",
+    "parts": [
+     "02.webm"
+    ],
+    "kind": "video"
+   }
+  ]
+ }
+}
