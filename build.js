@@ -22,6 +22,10 @@ const SUBFOLDERS = ['/TestH-A/'];
 const assets = ['assets/css/style.css', 'assets/js/data.js', 'assets/js/logo.js', 'assets/js/views.js', 'assets/js/hero-gl.js', 'assets/js/lightbox.js', 'assets/js/map.js', 'assets/js/app.js'];
 const ver = crypto.createHash('md5').update(assets.map(a => fs.readFileSync(path.join(ROOT, a))).join('')).digest('hex').slice(0, 8);
 
+// iubenda: paste the code from the iubenda dashboard (Cookie Solution, "Embed") into iubenda.html
+// at the site root and run the build again; it goes into the <head> of every page. Without the file nothing is added.
+const IUBENDA = fs.existsSync(path.join(ROOT, 'iubenda.html')) ? fs.readFileSync(path.join(ROOT, 'iubenda.html'), 'utf8').trim() + '\n' : '';
+
 // Tells the browser-side router where the site root is (links in the HTML are already relative)
 const baseScript = rel => `<script>window.HA_BASE=new URL(${JSON.stringify(rel)},location.href).pathname.slice(0,-1);</script>`;
 
@@ -35,7 +39,7 @@ function page(r, rel) {
 <head>
 <meta charset="utf-8">
 ${baseScript(rel)}
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+${IUBENDA}<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${V.esc(m.title)}</title>
 <meta name="description" content="${V.esc(m.description)}">
 <meta name="robots" content="${m.noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large'}">

@@ -38,7 +38,16 @@
   const projBySlug = Object.fromEntries(P.map(p => [p.slug, p]));
   const inArea = (p, slug) => { const a = areaBySlug[slug]; return !!a && p.areas.includes(a.id); };
   const countIn = slug => P.filter(p => inArea(p, slug)).length;
+  // The project that represents an area: the sharpest cover, first in list order on a tie
+  const leadOf = slug => P.filter(p => inArea(p, slug)).sort((a, b) => (b.cover.w || 0) - (a.cover.w || 0))[0] || null;
   const featured = P.filter(p => p.order <= 3);
+  // The most recent additions (projects carry "added": "YYYY-MM"); the featured ones if none is dated
+  const latest = (() => {
+    const dated = P.filter(p => p.added);
+    if (!dated.length) return featured;
+    const last = dated.map(p => p.added).sort().pop();
+    return dated.filter(p => p.added === last);
+  })();
   const loc = p => p.facts.Location || '';
   const country = p => { const m = loc(p).match(/italy|china|korea/i); return m ? m[0][0].toUpperCase() + m[0].slice(1).toLowerCase() : ''; };
   const COUNTRIES = ['Italy', 'China', 'Korea'].filter(c => P.some(p => country(p) === c));
@@ -100,11 +109,20 @@
         <a class="header__logo" href="/" aria-label="H&amp;A Associati, home">${logoSVG()}</a>
         <nav class="header__nav" aria-label="Areas">
           <ul>
-            ${tops.map(a => {
-              const kids = childrenOf(a.id).filter(c => countIn(c.slug));
+            ${tops.map((a, i) => {
+              const list = [{ href: U.area(a), name: `All ${a.name}`, n: countIn(a.slug) }]
+                .concat(childrenOf(a.id).filter(c => countIn(c.slug)).map(c => ({ href: U.area(c), name: c.name, n: countIn(c.slug), area: c.slug })));
               return `<li class="area-nav">
               <a class="area-nav__a" href="${U.area(a)}" data-top="${a.slug}">${esc(a.name)}</a>
-              ${kids.length ? `<div class="area-nav__drop"><ul>${kids.map(c => `<li><a href="${U.area(c)}" data-top="${a.slug}" data-area="${c.slug}">${esc(c.name)}<sup>${countIn(c.slug)}</sup></a></li>`).join('')}</ul></div>` : ''}
+              <div class="mega">
+                <div class="mega__in wrap">
+                  <div class="mega__head">
+                    <a class="mega__t" href="${U.area(a)}" tabindex="-1">${esc(a.name)}</a>
+                    <span class="mega__c">${countIn(a.slug)} projects</span>
+                  </div>
+                  <ul class="mega__list">${list.map(e => `<li><a href="${e.href}" data-top="${a.slug}"${e.area ? ` data-area="${e.area}"` : ''}><span>${esc(e.name)}</span><sup>${e.n}</sup></a></li>`).join('')}</ul>
+                </div>
+              </div>
             </li>`;
             }).join('')}
           </ul>
@@ -114,16 +132,15 @@
     </header>
     <div class="menu" id="menu" hidden>
       <div class="menu__inner wrap">
-        <nav class="menu__main" aria-label="Menu">
-          ${[[U.projects, 'Projects'], [U.firm, 'The Firm'], [U.people, 'People'], [U.contacts, 'Contacts']].map(([h, t]) => `<span class="ln"><a class="ln__in" href="${h}">${t}</a></span>`).join('')}
+        <nav class="menu__nav" aria-label="Menu">
+          <ul class="menu__areas">
+            ${tops.map((a, i) => `<li class="marea" data-k="${i}"><a class="marea__a" href="${U.area(a)}"><span class="ln"><span class="ln__in marea__t">${esc(a.name)}<sup class="marea__c">${countIn(a.slug)}</sup></span></span></a></li>`).join('')}
+          </ul>
+          <p class="menu__all"><a class="cta cta--light" href="${U.projects}"><span>All projects (${P.length})</span>${arrowSVG}</a></p>
+          <ul class="menu__main">
+            ${[[U.firm, 'The Firm'], [U.people, 'People'], [U.contacts, 'Contacts']].map(([h, t]) => `<li><a href="${h}">${t}</a></li>`).join('')}
+          </ul>
         </nav>
-        <div class="menu__areas">
-          ${tops.map(a => `<div class="menu__group"><p class="menu__h"><a href="${U.area(a)}">${esc(a.name)}<sup>${countIn(a.slug)}</sup></a></p>${childrenOf(a.id).filter(c => countIn(c.slug)).map(c => `<a href="${U.area(c)}">${esc(c.name)}</a>`).join('')}</div>`).join('')}
-        </div>
-        <div class="menu__foot">
-          <a href="mailto:${D.site.contacts.mail}">${esc(D.site.contacts.mail)}</a>
-          <a href="${D.site.contacts.telHref}">${esc(D.site.contacts.tel)}</a>
-        </div>
       </div>
     </div>`);
   }
@@ -138,14 +155,11 @@
           <a class="footer__tel" href="${s.contacts.telHref}">${esc(s.contacts.tel)}</a>
         </div>
         <div class="footer__cols">
-          <div><h2 class="footer__h">Contacts</h2>
-            <p>H&amp;A Associati<br>${esc(s.contacts.address)}<br>Tel: <a href="${s.contacts.telHref}">${esc(s.contacts.tel)}</a><br>Mail: <a href="mailto:${s.contacts.mail}">${esc(s.contacts.mail)}</a></p>
-          </div>
-          <div><h2 class="footer__h">Offices</h2>
-            ${s.offices.map(o => `<p class="footer__office"><strong>${esc(o.city)} (${esc(o.country)})</strong>${o.lines.map(esc).join('<br>')}${o.tel ? `<br>Tel: <a href="${o.telHref}">${esc(o.tel)}</a>` : ''}</p>`).join('')}
-          </div>
+          ${s.offices.map(o => `<div><h2 class="footer__h">${esc(o.city)} (${esc(o.country)})</h2>
+            <p class="footer__office">${o.lines.map(esc).join('<br>')}${o.tel ? `<br>Tel: <a href="${o.telHref}">${esc(o.tel)}</a>` : ''}</p>
+          </div>`).join('')}
           <div><h2 class="footer__h">Social</h2>
-            <ul>${s.social.map(x => `<li><a href="${x.href}" target="_blank" rel="noopener">${esc(x.name)}</a></li>`).join('')}</ul>
+            <ul class="footer__social">${s.social.map(x => `<li><a href="${x.href}" target="_blank" rel="noopener">${esc(x.name)}</a></li>`).join('')}</ul>
           </div>
           <div><h2 class="footer__h">Legal</h2>
             <p>${esc(s.legal.copy)}<br>${esc(s.legal.vat)}</p>
@@ -153,7 +167,6 @@
           </div>
         </div>
       </div>
-      <div class="footer__mark" aria-hidden="true"><div class="wrap"><span>H&amp;A Associati</span></div></div>
       <div class="wrap footer__bottom">
         <span>${esc(s.legal.copy)} | ${esc(s.legal.vat)}</span>
         <a class="footer__top" href="#top">Back to the top</a>
@@ -200,7 +213,7 @@
       <div class="pmap__grid">
         <div class="pmap__canvas" aria-label="Map of project locations"><div class="pmap__note">Loading map</div></div>
         <button type="button" class="pmap__more" aria-expanded="false" aria-controls="pl-${id}"><span>List of projects<sup>${list.length}</sup></span><span class="plus" aria-hidden="true"></span></button>
-        <ol class="pmap__list" id="pl-${id}">
+        <ol class="pmap__list" id="pl-${id}" data-lenis-prevent>
           ${list.map(p => `<li data-slug="${p.slug}" data-country="${country(p)}"><a href="${U.project(p.slug)}"><span class="pmap__t">${esc(p.title)}</span><span class="pmap__l">${esc(loc(p))}</span></a></li>`).join('')}
         </ol>
       </div>
@@ -210,30 +223,48 @@
   /* =============================================================== VIEWS */
 
   function viewHome() {
-    const f = featured;
+    const f = latest;
     const works = P.slice(0, 10);
     const sections = D.firm.sections.filter(s => s.images.length);
-    const intro = lines(D.firm.intro[0] || []);
+    const about = lines(D.firm.intro[0] || []);
     const offices = D.site.offices;
     const tz = { Venice: 'Europe/Rome', Rome: 'Europe/Rome', Shanghai: 'Asia/Shanghai' };
     const join = arr => arr.join(', ').replace(/, ([^,]*)$/, ' and $1');
 
     return `
-    <nav class="areas-m wrap" aria-label="Areas">
-      <ul>
-        ${tops.map(a => {
-          return `<li><a class="areas-m__a" href="${U.area(a)}">
-            <span class="areas-m__t">${esc(a.name)}</span>
-            <span class="areas-m__c">${countIn(a.slug)}</span>
-            <span class="areas-m__arr">${arrowSVG}</span>
-          </a></li>`;
+    <section class="stage" aria-labelledby="h-stage">
+      <h2 class="sr-only" id="h-stage">Areas</h2>
+      <ol class="stage__list">
+        ${tops.map((a, i) => {
+          const p = leadOf(a.slug);
+          return `<li class="stage__item">
+          <a class="stage__a" href="${U.area(a)}">
+            <span class="stage__img">${p ? pic(p.cover, '(max-width: 1023px) 100vw, 50vw', '', { eager: true }) : ''}</span>
+            <span class="stage__txt">
+              <span class="stage__t"><span class="ln"><span class="ln__in">${esc(a.name)}</span></span></span>
+              <span class="stage__sub">${childrenOf(a.id).filter(c => countIn(c.slug)).map(c => `<span>${esc(c.name)}</span>`).join('')}</span>
+              <span class="stage__c">${countIn(a.slug)} projects</span>
+            </span>
+            <span class="glass glass--dark stage__go" aria-hidden="true">${arrowSVG}</span>
+          </a>
+        </li>`;
         }).join('')}
-      </ul>
-    </nav>
+      </ol>
+    </section>
+
+    <section class="about" aria-labelledby="h-about">
+      <div class="about__in wrap">
+        <h1 class="about__lead" id="h-about" data-r="lines">${words(D.site.description)}</h1>
+        <div class="about__body">
+          ${about.map(t => `<p data-r="up">${esc(t)}</p>`).join('')}
+          <div class="about__cta" data-r="up">${cta(U.firm, 'The Firm')}</div>
+        </div>
+      </div>
+    </section>
 
     <section class="hero wrap" aria-labelledby="h-feat">
       <div class="hero__head">
-        <h2 class="sec__title" id="h-feat">${words('Featured projects')}</h2>
+        <h2 class="sec__title" id="h-feat" data-r="lines">${words('Latest projects')}</h2>
         <span class="hero__count"><b>01</b> / ${pad(f.length)}</span>
       </div>
       <div class="hero__stage">
@@ -255,38 +286,9 @@
           </div>
         </div>
       </div>
-      <ol class="hero__steps">
+      <ol class="hero__steps" style="--n:${f.length}">
         ${f.map((p, i) => `<li><button type="button" class="hero__step${i === 0 ? ' is-active' : ''}" aria-label="${esc(p.title)}"><i><b></b></i><span>${pad(i + 1)}</span><em>${esc(p.title)}</em></button></li>`).join('')}
       </ol>
-    </section>
-
-    <section class="intro wrap" aria-label="H&amp;A Associati">
-      <div class="intro__inner">
-        <h1 class="intro__text" data-r="words">${words(D.site.description)}</h1>
-        <div class="intro__row">
-          ${intro[1] ? `<p class="intro__p" data-r="up">${esc(intro[1])}</p>` : ''}
-          <div class="intro__cta" data-r="up">${cta(U.firm, 'The Firm')}</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="areas wrap" aria-labelledby="h-areas">
-      <h2 class="sr-only" id="h-areas">Areas</h2>
-      <ul class="areas__grid">
-        ${tops.map((a, i) => {
-          const p = P.find(q => inArea(q, a.slug));
-          return `<li data-r="up">
-          <a class="area-card" href="${U.area(a)}">
-            <span class="area-card__img">${p ? pic(p.cover, '(max-width: 560px) 96px, (max-width: 1023px) 46vw, 25vw', a.name) : ''}</span>
-            <span class="area-card__body">
-              <span class="area-card__n">${pad(i + 1)}</span>
-              <span class="area-card__t">${esc(a.name)}</span>
-              <span class="area-card__c">${countIn(a.slug)} projects</span>
-            </span>
-          </a>
-        </li>`;
-        }).join('')}
-      </ul>
     </section>
 
     <section class="sec" aria-labelledby="h-works">
@@ -382,6 +384,7 @@
         <label class="ptool"><span class="ptool__l">View</span>
           <select class="ptool__s" data-tool="view">
             <option value="grid">Grid</option>
+            <option value="index">Index</option>
             <option value="list">List</option>
             <option value="map">Map</option>
           </select>
@@ -396,6 +399,18 @@
           </a>
         </li>`).join('')}
       </ul>
+
+      <div class="pidx" data-view-pane="index" hidden>
+        <ol>${P.map(p => `
+          <li class="pidx__row${list.includes(p) ? '' : ' is-out'}" data-slug="${p.slug}">
+            <a href="${U.project(p.slug)}">
+              <span class="pidx__t">${esc(p.title)}</span>
+              <span class="pidx__l">${esc(loc(p))}</span>
+              <span class="pidx__img">${pic({ src: smallUrl(p.cover, 760), w: 760, h: Math.round(760 * p.cover.h / p.cover.w) }, '(max-width: 860px) 40vw, 380px', '')}</span>
+            </a>
+          </li>`).join('')}
+        </ol>
+      </div>
 
       <div class="plist" data-view-pane="list" hidden>
         <div class="plist__head" aria-hidden="true"><span></span><span>Project</span><span>Location</span><span class="h-c">Typology</span><span>Status</span></div>
@@ -448,10 +463,9 @@
     const i = P.indexOf(p);
     const prev = P[(i - 1 + P.length) % P.length], next = P[(i + 1) % P.length];
     const gal = p.gallery.filter(g => g.src !== p.cover.src);
-    const areas = p.areas.map(id => areaById[id]).filter(Boolean).sort((a, b) => a.parent - b.parent);
     const facts = Object.keys(FACT_LABELS).filter(k => p.facts[k]);
     const { lead, body } = splitLead(p.desc);
-    const nearby = P.filter(q => q !== p && country(q) === country(p)).slice(0, 5);
+    const nearby = P.filter(q => q !== p && country(q) === country(p));
     const sizeFor = k => ({ wide: SZ.cover, half: SZ.half, right: SZ.third, left: SZ.third }[k]);
 
     return `
@@ -471,36 +485,27 @@
         ${body.length ? `<div class="proj__body">${body.map(t => `<p data-r="up">${esc(t)}</p>`).join('')}</div>` : ''}
       </section>
 
+      ${gal.length ? `
+      <section class="gal wrap" aria-labelledby="h-gal">
+        <h2 class="sec__title gal__title" id="h-gal" data-r="lines">${words('Gallery')}<sup class="gal__sup">${pad(gal.length)}</sup></h2>
+        <ol class="gal__list">
+          ${gal.map((item, k) => `<li class="gal__item" style="--ar:${(item.w / item.h).toFixed(3)};--nw:${item.w}px">
+              <button type="button" class="gal__btn" data-lb="${lbIndex(p, item)}" aria-label="Enlarge image ${k + 1} of ${gal.length}">${pic(item, '(max-width: 1240px) 100vw, 1200px', `${p.title}, image ${k + 1}`)}</button>
+              <p class="gal__cap"><span class="gal__n">${pad(k + 1)} / ${pad(gal.length)}</span><span class="gal__t">${esc(p.title)}</span></p>
+            </li>`).join('')}
+        </ol>
+        <p class="glass gal__count" aria-hidden="true"><b>01</b>&nbsp;/ ${pad(gal.length)}</p>
+      </section>` : ''}
+
       ${p.geo ? `
       <section class="proj__map wrap" aria-labelledby="h-loc">
+        <h2 class="proj__h" id="h-loc" data-r="lines">${words('Location')}</h2>
         <div class="proj__mapgrid">
           <div class="locmap" data-locmap="${p.slug}" aria-label="Map: ${esc(loc(p))}"></div>
           <div class="proj__mapside">
-            <h2 class="proj__h" id="h-loc" data-r="words">${words('Location')}</h2>
             <p class="proj__place">${esc(loc(p))}</p>
-            <ul class="tags">${areas.map(a => `<li><a href="${U.area(a)}">${esc(a.name)}</a></li>`).join('')}</ul>
-            ${nearby.length ? `<p class="proj__near-h caps">Also in ${esc(country(p))}</p><ul class="proj__near">${nearby.map(q => `<li><a href="${U.project(q.slug)}"><span>${esc(q.title)}</span><span>${esc(loc(q))}</span></a></li>`).join('')}</ul>` : ''}
+            ${nearby.length ? `<p class="proj__near-h caps">Also in ${esc(country(p))}</p><ul class="proj__near" data-lenis-prevent tabindex="0" aria-label="Other projects in ${esc(country(p))}">${nearby.map(q => `<li><a href="${U.project(q.slug)}"><span>${esc(q.title)}</span><span>${esc(loc(q))}</span></a></li>`).join('')}</ul>` : ''}
           </div>
-        </div>
-      </section>` : ''}
-
-      ${gal.length ? `
-      <section class="gal" aria-labelledby="h-gal">
-        <div class="gal__pin">
-          <div class="wrap gal__head">
-            <h2 class="sec__title" id="h-gal">${words('Gallery')}<sup class="gal__sup">${pad(gal.length)}</sup></h2>
-            <p class="gal__count" aria-hidden="true"><b>01</b> / ${pad(gal.length)}</p>
-          </div>
-          <ol class="gal__track">
-            ${gal.map((item, k) => {
-              const n = lbIndex(p, item);
-              return `<li class="gal__item${k === 0 ? ' is-lit' : ''}" style="--ar:${(item.w / item.h).toFixed(3)};--nh:${item.h}px">
-                <button type="button" class="gal__btn" data-lb="${n}" aria-label="Enlarge image ${k + 1} of ${gal.length}">${pic(item, '(max-width: 860px) 86vw, 70vw', `${p.title}, image ${k + 1}`)}</button>
-                <span class="gal__cap"><span class="gal__n">${pad(k + 1)}</span><span class="gal__t">${esc(p.title)}</span></span>
-              </li>`;
-            }).join('')}
-          </ol>
-          <div class="wrap gal__foot"><div class="gal__progress" aria-hidden="true"><i></i></div></div>
         </div>
       </section>` : ''}
 
@@ -565,20 +570,18 @@
     </section>
     <section class="psec wrap" aria-labelledby="g-0">
       <h2 class="psec__title" id="g-0" data-r="words"><span>${words(partners.group)}</span><sup>${pad(partners.members.length)}</sup></h2>
-      <div class="partners">
+      <ul class="partners">
         ${partners.members.map((m, i) => `
-        <div class="partner">
-          <span class="partner__ph" aria-hidden="true">${photo(m, '(max-width: 860px) 180px, 420px')}</span>
-          <h3 class="partner__h"><button class="partner__btn" type="button" aria-expanded="false" aria-controls="pp-${i}">
+        <li class="partner" data-r="up">
+          <button class="partner__card" type="button" data-person="0-${i}" aria-label="Open the profile of ${esc(m.name)}">
+            <span class="partner__ph">${photo(m, '(max-width: 560px) 46vw, (max-width: 1100px) 31vw, 20vw')}</span>
             <span class="partner__name">${esc(m.name)}</span>
             <span class="partner__role">${esc(m.role)}</span>
-            <span class="plus" aria-hidden="true"></span>
-          </button></h3>
-          <div class="partner__panel" id="pp-${i}" hidden>
-            <div class="partner__text">${(m.bio.length ? m.bio : [m.role]).map(t => `<p>${esc(t)}</p>`).join('')}</div>
-          </div>
-        </div>`).join('')}
-      </div>
+            <span class="member__more">Profile${arrowSVG}</span>
+          </button>
+          <div class="partner__bio">${(m.bio.length ? m.bio : [m.role]).map(t => `<p>${esc(t)}</p>`).join('')}</div>
+        </li>`).join('')}
+      </ul>
     </section>
     ${groups.map((g, gi) => `
     <section class="psec wrap" aria-labelledby="g-${gi + 1}">
@@ -704,6 +707,6 @@
   return {
     SITE_URL, BASE, link, abs, U, lightboxItems, esc, pad, words, chars, pic, smallUrl, logoSVG, markSVG, header, footer, render, match, allPaths,
     OFFICE_GEO,
-    data: { P, featured, projBySlug, areaBySlug, areaById, inArea, loc, country, COUNTRIES },
+    data: { P, featured, latest, projBySlug, areaBySlug, areaById, inArea, loc, country, COUNTRIES },
   };
 });

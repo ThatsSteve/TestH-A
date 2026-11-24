@@ -29,6 +29,8 @@ All links and assets are relative, so the same files work anywhere without rebui
 - **GitHub Pages**: branch `main`, folder `/ (root)`, at `https://thatssteve.github.io/TestH-A/`.
 - **Final domain**: upload the folder as is.
 
+- **Aruba (Apache)**: upload the whole folder to the web root. `.htaccess` sets the 404 page, compression and caching. The images of the projects carried over from the old site are still loaded from `www.hastudio.it/wp-content/uploads/`: when WordPress is removed, keep the `wp-content/uploads/` folder on the server (PHP is not needed), or those images stop showing.
+
 `404.html` is self-contained. If the site is published in another sub-folder, add it to `SUBFOLDERS` in `build.js` so the "Back to home" link points to the right place.
 
 ## Adding a project
@@ -43,4 +45,4 @@ The position in the `projects` list is the order used on the home page and in th
 
 - Images of the projects carried over from hastudio.it are loaded from `www.hastudio.it/wp-content/uploads/` with their WordPress-generated sizes (`srcset`) and are never shown larger than their native 1200 px. Newer images are stored in `assets/img/projects/`.
 - Map tiles come from OpenFreeMap. Markers sit at the city given in each project's Location field, not at the exact site.
-- No cookie banner yet. The current site uses iubenda.
+- Privacy (iubenda): the site sets no cookies and has no analytics, social widgets or embedded videos. It only keeps three technical values in the browser's session storage (`ha-intro`, `ha-view`, `ha-sort`: whether the intro was seen, the chosen view and sort order), deleted when the browser closes. Third parties contacted when a page loads: cdnjs.cloudflare.com (GSAP), unpkg.com (Lenis, MapLibre), tiles.openfreemap.org (map tiles, only where a map is shown) and www.hastudio.it (images). Declare them in the iubenda privacy policy, or host the libraries in `assets/` so only the map tiles remain. To add the iubenda banner, paste its embed code into `iubenda.html` at the root and run `node build.js`.
